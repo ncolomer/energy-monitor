@@ -19,8 +19,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install setuptools wheel
       - name: Set version
-        run: echo ::set-env name=VERSION::${GITHUB_REF#refs/*/}
-      - name: Build artifact
+        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - name: Build wheel
         run: |
           python setup.py sdist bdist_wheel
       - name: Create release
@@ -33,7 +33,7 @@ jobs:
           release_name: Release ${{ env.VERSION }}
           draft: false
           prerelease: false
-      - name: Upload release asset
+      - name: Upload wheel
         id: upload_release_asset
         uses: actions/upload-release-asset@v1
         env:
