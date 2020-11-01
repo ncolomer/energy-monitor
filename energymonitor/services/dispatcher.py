@@ -14,11 +14,11 @@ class Dispatcher(Thread):
         super().__init__(name=self.__class__.__name__)
         self.logger = logging.getLogger(self.__class__.__name__)
         self.queue = Queue()
-        self.handlers = []
-        self.executor = ThreadPoolExecutor(max_workers=2)
+        self.subscribers = []
 
     def subscribe(self, handler: Callable):
-        self.handlers.append(handler)
+        executor = ThreadPoolExecutor(thread_name_prefix='dispatcher', max_workers=1)
+        self.subscribers.append((executor, handler))
 
     def publish(self, message):
         self.queue.put(message)
@@ -26,8 +26,8 @@ class Dispatcher(Thread):
     def run(self):
         while True:
             message = self.queue.get()
-            for handler in self.handlers:
-                self.executor.submit(handler, message)
+            for executor, handler in self.subscribers:
+                executor.submit(handler, message)
             self.queue.task_done()
 
 
