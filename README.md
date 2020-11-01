@@ -32,9 +32,8 @@ Description
 | 3pcs SCT-013-000 Current Transformer | 1 | 11.30€ | [buy](https://www.aliexpress.com/item/32708887594.html) |
 | 3pcs 6x6x4.3MM 4PIN G89 Push Button |  1 | 0.70€ | [buy](https://www.aliexpress.com/item/32669948621.html) |
 | 200pcs M2.5 Brass Standoffs | 1 | 9.90€ | [buy](https://www.amazon.fr/gp/product/B07QHZNZWD) |
-| **Charles** Micro Teleinfo V2.0 (optional) | 1 | 22.90€ | [buy](https://www.tindie.com/products/hallard/micro-teleinfo-v20/) \| [doc](http://hallard.me/category/tinfo/) |
-| 3pcs Micro USB to USB 2.0 adapter (optional) | 1 | 5.00€ | [buy](https://www.amazon.fr/gp/product/B00YOX4JU6) |
-
+| (optional) **Charles** Micro Teleinfo V2.0 | 1 | 22.90€ | [buy](https://www.tindie.com/products/hallard/micro-teleinfo-v20/) \| [doc](http://hallard.me/category/tinfo/) |
+| (optional) 3pcs Micro USB to USB 2.0 adapter | 1 | 5.00€ | [buy](https://www.amazon.fr/gp/product/B00YOX4JU6) |
 
 Total price is roughly 130€, not counting shipping.
 
