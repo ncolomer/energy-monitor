@@ -5,7 +5,10 @@ from setuptools import setup, find_packages
 setup(
     name='energy-monitor',
     version=getenv('VERSION'),
+    author='Nicolas Colomer',
+    license='The Unlicense',
     description='Energy Monitor application',
+    url='https://github.com/ncolomer/energy-monitor',
     packages=find_packages(include='energymonitor.*'),
     scripts=['scripts/energy-monitor'],
     package_data={
