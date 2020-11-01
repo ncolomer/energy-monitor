@@ -28,6 +28,7 @@ Description
 | **Sandisk** Micro SD card 16GB Class 10 | 1 | 9.90€ | [buy](https://www.kubii.fr/raspberry-pi-microbit/2587-carte-micro-sd-sandisk-16go-classe10-taux-de-transfert-80mb-kubii-619659161613.html) |
 | **LeChacal** RPIZ CT3V1 | 1 | 18.30€ | [buy](http://lechacalshop.com/gb/internetofthing/63-rpizct3v1.html) \| [doc](http://lechacal.com/wiki/index.php/RPIZ_CT3V1) |
 | **LeChacal** EU AC/AC Adaptor | 1 | 15.00€ | [buy](http://lechacalshop.com/gb/internetofthing/29-acac-adaptor-voltage-sensor-for-rpict-series.html) |
+| 3pcs SCT-013-000 Current Transformer | 1 | 11.30€ | [buy](https://www.aliexpress.com/item/32708887594.html) |
 | **Charles** Micro Teleinfo V2.0 | 1 | 22.90€ | [buy](https://www.tindie.com/products/hallard/micro-teleinfo-v20/) \| [doc](http://hallard.me/category/tinfo/) |
 | 3pcs 6x6x4.3MM 4PIN G89 Push Button |  1 | 0.70€ | [buy](https://www.aliexpress.com/item/32669948621.html) |
 | 200pcs M2.5 Brass Standoffs | 1 | 9.90€ | [buy](https://www.amazon.fr/gp/product/B07QHZNZWD) |
