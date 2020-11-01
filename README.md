@@ -26,7 +26,7 @@ Description
 |-|-:|-:|-|
 | **Raspberry** Pi Zero WH | 1 | 14.60€ | [buy](https://www.kubii.fr/cartes-raspberry-pi/2076-raspberry-pi-zero-wh-kubii-3272496009394.html) |
 | **Sandisk** Micro SD card 16GB Class 10 | 1 | 9.90€ | [buy](https://www.kubii.fr/raspberry-pi-microbit/2587-carte-micro-sd-sandisk-16go-classe10-taux-de-transfert-80mb-kubii-619659161613.html) |
-| **Waveshare** 2.23" OLED Display 128×32 Pixels SPI/I2C | 1 | 23.00€ | [buy](https://www.amazon.fr/dp/B07XDXZ74V) |
+| **Waveshare** 2.23" OLED Display 128×32 Pixels SPI/I2C | 1 | 23.00€ | [buy](https://www.amazon.fr/dp/B07XDXZ74V) \| [doc](https://www.waveshare.com/wiki/2.23inch_OLED_HAT) |
 | **LeChacal** RPIZ CT3V1 | 1 | 18.30€ | [buy](http://lechacalshop.com/gb/internetofthing/63-rpizct3v1.html) \| [doc](http://lechacal.com/wiki/index.php/RPIZ_CT3V1) |
 | **LeChacal** EU AC/AC Adaptor | 1 | 15.00€ | [buy](http://lechacalshop.com/gb/internetofthing/29-acac-adaptor-voltage-sensor-for-rpict-series.html) |
 | 3pcs SCT-013-000 Current Transformer | 1 | 11.30€ | [buy](https://www.aliexpress.com/item/32708887594.html) |
