@@ -5,6 +5,7 @@ import sys
 from signal import signal, SIGTERM
 
 from energymonitor.devices.rpict import RPICT
+from energymonitor.helpers.constants import VERSION
 from energymonitor.services.datalogger import DataLogger
 from energymonitor.services.interface import Interface
 
@@ -21,3 +22,5 @@ if __name__ == "__main__":
         interface.stop()
         sys.exit()
     signal(SIGTERM, shutdown)
+
+    logging.getLogger(f'energy-monitor {VERSION} started!')

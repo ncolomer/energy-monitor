@@ -21,5 +21,6 @@ setup(
         'pyserial~=3.4',
         'Pillow~=7.2.0',
         'influxdb~=5.3.0',
+        'importlib-metadata~=1.0;python_version<"3.8"',
     ],
 )
