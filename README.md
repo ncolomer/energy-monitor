@@ -29,11 +29,19 @@ Description
 | **LeChacal** RPIZ CT3V1 | 1 | 18.30€ | [buy](http://lechacalshop.com/gb/internetofthing/63-rpizct3v1.html) \| [doc](http://lechacal.com/wiki/index.php/RPIZ_CT3V1) |
 | **LeChacal** EU AC/AC Adaptor | 1 | 15.00€ | [buy](http://lechacalshop.com/gb/internetofthing/29-acac-adaptor-voltage-sensor-for-rpict-series.html) |
 | **Charles** Micro Teleinfo V2.0 | 1 | 22.90€ | [buy](https://www.tindie.com/products/hallard/micro-teleinfo-v20/) \| [doc](http://hallard.me/category/tinfo/) |
-| M2.5 Brass Standoffs 200PCS kit | 1 | 9.90€ | [buy](https://www.amazon.fr/gp/product/B07QHZNZWD) |
-| Micro USB to USB 2.0 adapter x3 | 1 | 5.00€ | [buy](https://www.amazon.fr/gp/product/B00YOX4JU6) |
+| 3pcs 6x6x4.3MM 4PIN G89 Push Button |  1 | 0.70€ | [buy](https://www.aliexpress.com/item/32669948621.html) |
+| 200pcs M2.5 Brass Standoffs | 1 | 9.90€ | [buy](https://www.amazon.fr/gp/product/B07QHZNZWD) |
+| 3pcs Micro USB to USB 2.0 adapter | 1 | 5.00€ | [buy](https://www.amazon.fr/gp/product/B00YOX4JU6) |
 
 Total price is roughly 100€, not counting shipping.
 
 ### Wiring
+
+| Part | Price | Link |
+|-|-:|-|
+| 22AWG Electrical Wire box | 11.80€ | [buy](https://www.aliexpress.com/item/32872439317.html) |
+| 620pcs Dupont Connector kit 1 | 4.00€ | [buy](https://www.aliexpress.com/item/4000645340712.html) |
+| 310pcs Dupont Connector kit 1 | 4.00€ | [buy](https://www.aliexpress.com/item/4000570942676.html) |
+| SN-28B Pin Crimping Tool | 4.00€ | [buy](https://www.aliexpress.com/item/33048867532.html) |
 
 ### Enclosure
