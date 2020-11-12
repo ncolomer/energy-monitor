@@ -1,7 +1,7 @@
 import logging
 from concurrent.futures import ThreadPoolExecutor
 from queue import Queue
-from threading import Thread
+from threading import Thread, Lock
 from typing import Callable
 
 
@@ -14,11 +14,15 @@ class Dispatcher(Thread):
         super().__init__(name=self.__class__.__name__)
         self.logger = logging.getLogger(self.__class__.__name__)
         self.queue = Queue()
-        self.handlers = []
-        self.executor = ThreadPoolExecutor(max_workers=2)
+        self.subscription_lock = Lock()
+        self.subscribers = []
 
     def subscribe(self, handler: Callable):
-        self.handlers.append(handler)
+        with self.subscription_lock:
+            subscriber_id = f'Subscriber{len(self.subscribers) + 1}'
+            executor = ThreadPoolExecutor(thread_name_prefix=f'{self.name}-{subscriber_id}', max_workers=1)
+            self.subscribers.append((executor, handler))
+            self.logger.debug('Added subscriber %s', subscriber_id)
 
     def publish(self, message):
         self.queue.put(message)
@@ -26,8 +30,8 @@ class Dispatcher(Thread):
     def run(self):
         while True:
             message = self.queue.get()
-            for handler in self.handlers:
-                self.executor.submit(handler, message)
+            for executor, handler in self.subscribers:
+                executor.submit(handler, message)
             self.queue.task_done()
 
 
