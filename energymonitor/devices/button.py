@@ -37,7 +37,7 @@ class Button:
         )
 
         def when_pressed(btn):
-            self.reset_inactivity_watcher(30)
+            self._reset_inactivity_watcher(30)
         button.when_pressed = when_pressed
 
         def when_held(btn):
@@ -46,18 +46,19 @@ class Button:
         button.when_held = when_held
 
         def when_released(btn):
-            self.reset_inactivity_watcher(30)
+            self._reset_inactivity_watcher(30)
             if not btn.was_held:
                 pubsub.publish(PressEvent())
             btn.was_held = False
         button.when_released = when_released
 
-        self.reset_inactivity_watcher(2 * 60)
+        self._reset_inactivity_watcher(2 * 60)
         self.logger.info('Initialized')
 
-    def reset_inactivity_watcher(self, duration):
+    def _reset_inactivity_watcher(self, duration):
+        def publish_inactivity_event():
+            pubsub.publish(InactivityEvent())
         if self.inactivity_watcher_thread:
             self.inactivity_watcher_thread.cancel()
-        self.inactivity_watcher_thread = threading.Timer(interval=duration,
-                                                         function=lambda: pubsub.publish(InactivityEvent()))
+        self.inactivity_watcher_thread = threading.Timer(duration, publish_inactivity_event)
         self.inactivity_watcher_thread.start()
