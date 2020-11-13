@@ -29,7 +29,7 @@ class Display:
         # Initialize sequence
         self._oled.contrast(0x00)
         self.print(LOGO)
-        self.logger.info('Initialized')
+        self.logger.debug('Initialized')
 
     def image(self):
         return Image.new(mode='1', size=(self._oled.width, self._oled.height), color=0)

@@ -16,7 +16,7 @@ class DataLogger:
         self.logger = logging.getLogger(self.__class__.__name__)
         self.influx = InfluxDBClient(host=getenv('INFLUX_DB_HOST'), port=8086, database='metrology')
         pubsub.subscribe(self.__class__.__name__, self.handle_message)
-        self.logger.info('Initialized')
+        self.logger.debug('Initialized')
 
     def handle_message(self, message):
         if type(message) == rpict.Measurements:

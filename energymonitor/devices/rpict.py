@@ -40,7 +40,7 @@ class RPICT(Thread):
         super().__init__(name=self.__class__.__name__)
         self.logger = logging.getLogger(self.__class__.__name__)
         self.serial = Serial(port='/dev/ttyAMA0', baudrate=38400)
-        self.logger.info('Initialized')
+        self.logger.debug('Initialized')
 
     def run(self):
         self.serial.readline()  # Ignore (potentially incomplete) first line

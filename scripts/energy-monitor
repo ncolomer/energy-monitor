@@ -12,6 +12,8 @@ from energymonitor.services.interface import Interface
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(name)s - %(levelname)s: %(message)s')
 
 if __name__ == "__main__":
+    logger = logging.getLogger('Main')
+
     rpict = RPICT()
     rpict.start()
 
@@ -23,4 +25,4 @@ if __name__ == "__main__":
         sys.exit()
     signal(SIGTERM, shutdown)
 
-    logging.getLogger('Main').info(f'energy-monitor {VERSION} started!')
+    logging.info(f'energy-monitor {VERSION} started!')
