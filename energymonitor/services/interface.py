@@ -1,13 +1,10 @@
 import logging
 
-from PIL import Image
-
 from energymonitor.devices import button, rpict
 from energymonitor.devices.button import Button
 from energymonitor.devices.display import Display
 from energymonitor.services.dispatcher import pubsub
-from energymonitor.services.pages import LogoPage, RPICTPage
-from collections import deque, OrderedDict
+from energymonitor.services.pages import RPICTPage
 
 
 class Interface:

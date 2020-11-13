@@ -18,7 +18,7 @@ def load_logo():
     ImageChops.offset(logo, xoffset=0, yoffset=-5)
     version = f'v{VERSION}'
     (font_width, font_height) = FONT.getsize(version)
-    ImageDraw.Draw(logo).text(xy=((logo.size(0) - font_width) // 2, logo.size(1) - font_height - 1),
+    ImageDraw.Draw(logo).text(xy=((logo.size[0] - font_width) // 2, logo.size[1] - font_height - 1),
                               text=version, font=FONT, fill=255)
     return logo
 
