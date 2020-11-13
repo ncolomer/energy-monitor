@@ -45,7 +45,11 @@ class RPICT(Thread):
     def run(self):
         self.serial.readline()  # Ignore (potentially incomplete) first line
         while True:
-            items = self.serial.readline().decode().strip().split()
-            measurements = Measurements(int(items[0]), *map(float, items[1:]), timestamp=datetime.utcnow())
-            self.logger.debug('Read from RPICT: %s', measurements)
-            pubsub.publish(measurements)
+            line = self.serial.readline().decode()
+            try:
+                items = line.strip().split()
+                measurements = Measurements(int(items[0]), *map(float, items[1:]), timestamp=datetime.utcnow())
+                self.logger.debug('Read from RPICT: %s', measurements)
+                pubsub.publish(measurements)
+            except Exception as exc:
+                self.logger.warning('Unable to parse measurements from RPICT: %s', line, exc_info=exc)
