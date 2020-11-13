@@ -40,15 +40,15 @@ Total price is roughly 130€, not counting shipping.
 
 ### Wiring
 
-| OLED | Raspberry Pi |
-| ---- | ------------ |
-| VCC | 17 (3.3) |
-| GND | 20 (GND) |
-| DIN | 19 (MOSI) |
-| CLK | 23 (SCLK) |
-| CS  | 24 (CE0) |
-| D/C | 18 (GPIO5) |
-| RES | 22 (GPIO6) |
+| OLED | Raspberry Pi | Physical | BCM |
+| ---- | ------------ | -------- | --- |
+| VCC | 3.3 | 17 | - |
+| GND | GND | 20 | - |
+| DIN | MOSI | 19 | 10 |
+| CLK | SCLK | 23 | 11 |
+| CS  | CE0 | 24 | 8 |
+| D/C | GPIO5 | 18 | 24 |
+| RES | GPIO6 | 22 | 25 |
 
 | Part | Price | Link |
 |-|-:|-|
