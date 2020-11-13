@@ -25,4 +25,4 @@ if __name__ == "__main__":
         sys.exit()
     signal(SIGTERM, shutdown)
 
-    logging.info(f'energy-monitor {VERSION} started!')
+    logger.info(f'energy-monitor {VERSION} started!')

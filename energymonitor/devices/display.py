@@ -3,10 +3,7 @@ import logging
 import adafruit_ssd1305
 import board
 import digitalio
-from PIL import Image
 from adafruit_ssd1305 import SET_DISP
-
-from energymonitor.helpers.constants import LOGO
 
 
 class Display:
@@ -28,22 +25,21 @@ class Display:
 
         # Initialize sequence
         self._oled.contrast(0x00)
-        self.print(LOGO)
         self.logger.debug('Initialized')
 
-    def image(self):
-        return Image.new(mode='1', size=(self._oled.width, self._oled.height), color=0)
+    def size(self) -> (int, int):
+        return self._oled.width, self._oled.height
 
-    def display_on(self):
+    def on(self):
         self._oled.write_cmd(SET_DISP | 0x01)
 
     def print(self, image):
         self._oled.image(image)
         self._oled.show()
 
-    def display_clear(self):
+    def clear(self):
         self._oled.fill(0)
         self._oled.show()
 
-    def display_off(self):
+    def off(self):
         self._oled.write_cmd(SET_DISP | 0x00)

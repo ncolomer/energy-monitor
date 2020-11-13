@@ -1,30 +1,37 @@
 from PIL import Image, ImageDraw
 
-from energymonitor.helpers.constants import MAX_POWER, FONT
+from energymonitor.helpers.constants import FONT
 from energymonitor.helpers.maths import clamp
 
 
+def clear(image: Image):
+    draw = ImageDraw.Draw(image)
+    draw.rectangle([(0, 0), image.size], fill=0)
+
+
 def add_text(image: Image, xy: (int, int), text: str):
-    canvas = ImageDraw.Draw(image)
-    canvas.text(xy, text, font=FONT, fill=255)
+    draw = ImageDraw.Draw(image)
+    draw.text(xy=xy, text=text, font=FONT, fill=255)
 
 
-def add_bar(image: Image, height: int, value: float, max_value: float = None):
-    canvas = ImageDraw.Draw(image)
-    BAR_WIDTH = 76
-    BAR_XS = image.width - BAR_WIDTH
-    BAR_YS = height + 1
-    canvas.rectangle([(BAR_XS, BAR_YS), (image.width - 1, BAR_YS + 6)], outline=255, fill=0)
-
-    BAR_VAL_WIDTH = BAR_WIDTH - 5
-    BAR_VAL_XS = BAR_XS + 2
-    BAR_VAL_YS = BAR_YS + 2
-
-    normalized_value = clamp(value, 0, MAX_POWER) / MAX_POWER
-    xv = int(BAR_VAL_WIDTH * normalized_value)
-    canvas.rectangle([(BAR_VAL_XS, BAR_VAL_YS), (BAR_VAL_XS + xv, BAR_VAL_YS + 2)], outline=255, fill=255)
-
-    if max_value is not None:
-        normalized_max_value = clamp(max_value, 0, MAX_POWER) / MAX_POWER
-        xm = int(BAR_VAL_WIDTH * normalized_max_value)
-        canvas.line([(BAR_VAL_XS + xm, BAR_VAL_YS), (BAR_VAL_XS + xm, BAR_VAL_YS + 2)], fill=255, width=1)
+def add_bar(image: Image, xy: (int, int), value: float, max: float = None):
+    draw = ImageDraw.Draw(image)
+    # border
+    draw.rectangle([(xy[0], xy[1] + 1),
+                    (image.width - 1, xy[1] + 6)],
+                   outline=255, fill=0)
+    # value
+    bar_width = image.width - xy[0] - 5
+    bar_height = 1
+    bar_start_x = xy[0] + 2
+    bar_start_y = xy[1] + 3
+    value_offset = int(bar_width * clamp(value, 0, 1))
+    draw.rectangle([(bar_start_x, bar_start_y),
+                    (bar_start_x + value_offset, bar_start_y + bar_height)],
+                   outline=255, fill=255)
+    # max
+    if max is not None:
+        max_value_offset = int(bar_width * clamp(max, 0, 1))
+        draw.line([(bar_start_x + max_value_offset, bar_start_y),
+                   (bar_start_x + max_value_offset, bar_start_y + bar_height)],
+                  fill=255, width=1)

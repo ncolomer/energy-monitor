@@ -32,13 +32,13 @@ class Button:
 
         def when_pressed():
             pubsub.publish(PressEvent())
-            self._reset_inactivity_watcher(30)
+            self.reset_inactivity_watcher(30)
         button.when_pressed = when_pressed
 
-        self._reset_inactivity_watcher(2 * 60)
+        self.reset_inactivity_watcher(2 * 60)
         self.logger.debug('Initialized')
 
-    def _reset_inactivity_watcher(self, duration):
+    def reset_inactivity_watcher(self, duration):
         def publish_inactivity_event():
             pubsub.publish(InactivityEvent())
         if self.inactivity_watcher_thread:
