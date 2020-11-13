@@ -22,7 +22,7 @@ class Interface:
         self.logger = logging.getLogger(self.__class__.__name__)
         self.button = Button()
         self.display = Display()
-        pubsub.subscribe(self.handle_message)
+        pubsub.subscribe(self.__class__.__name__, self.handle_message)
         self.logger.info('Initialized')
 
     def build_rpict_page(self, m: rpict.Measurements) -> Image:

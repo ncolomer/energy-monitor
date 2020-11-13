@@ -17,12 +17,11 @@ class Dispatcher(Thread):
         self.subscription_lock = Lock()
         self.subscribers = []
 
-    def subscribe(self, handler: Callable):
+    def subscribe(self, name: str, callback: Callable):
         with self.subscription_lock:
-            subscriber_id = f'Subscriber{len(self.subscribers) + 1}'
-            executor = ThreadPoolExecutor(thread_name_prefix=f'{self.name}-{subscriber_id}', max_workers=1)
-            self.subscribers.append((executor, handler))
-            self.logger.debug('Added subscriber %s', subscriber_id)
+            executor = ThreadPoolExecutor(thread_name_prefix=f'{self.name}-{name}', max_workers=1)
+            self.subscribers.append((name, executor, callback))
+            self.logger.debug('Added subscriber %s', name)
 
     def publish(self, message):
         self.queue.put(message)
@@ -30,7 +29,8 @@ class Dispatcher(Thread):
     def run(self):
         while True:
             message = self.queue.get()
-            for executor, handler in self.subscribers:
+            for name, executor, handler in self.subscribers:
+                self.logger.debug('Publishing message %s to %s', message, name)
                 executor.submit(handler, message)
             self.queue.task_done()
 
