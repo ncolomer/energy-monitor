@@ -27,6 +27,9 @@ class Interface:
         if type(message) == rpict.Measurements:
             self.rpict_page.refresh(message)
             self.display.print(self.rpict_page.image())
+        elif type(message) == button.WakeupEvent:
+            self.logger.info('Received WakeupEvent')
+            self.display.on()
         elif type(message) == button.InactivityEvent:
             self.logger.info('Received InactivityEvent')
             self.display.off()
