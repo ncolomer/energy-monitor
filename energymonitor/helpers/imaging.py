@@ -17,14 +17,14 @@ def add_text(image: Image, xy: (int, int), text: str):
 def add_bar(image: Image, xy: (int, int), value: float, max: float = None):
     draw = ImageDraw.Draw(image)
     # border
-    draw.rectangle([(xy(0), xy(1) + 1),
-                    (image.width - 1, xy(1) + 6)],
+    draw.rectangle([(xy[0], xy[1] + 1),
+                    (image.width - 1, xy[1] + 6)],
                    outline=255, fill=0)
     # value
-    bar_width = image.width - xy(0) - 5
-    bar_height = 2
-    bar_start_x = xy(0) + 2
-    bar_start_y = xy(1) + 2
+    bar_width = image.width - xy[0] - 5
+    bar_height = 1
+    bar_start_x = xy[0] + 2
+    bar_start_y = xy[1] + 3
     value_offset = int(bar_width * clamp(value, 0, 1))
     draw.rectangle([(bar_start_x, bar_start_y),
                     (bar_start_x + value_offset, bar_start_y + bar_height)],
