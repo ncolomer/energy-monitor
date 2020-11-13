@@ -1,10 +1,11 @@
 import logging
+from collections import deque
 
-from energymonitor.devices import button, rpict
+from energymonitor.devices import button, rpict, linky
 from energymonitor.devices.button import Button
 from energymonitor.devices.display import Display
 from energymonitor.services.dispatcher import pubsub
-from energymonitor.services.pages import RPICTPage, LandingPage
+from energymonitor.services.pages import LandingPage, RPICTPage, LinkyPage
 
 
 class Interface:
@@ -15,18 +16,26 @@ class Interface:
 
     def __init__(self):
         self.logger = logging.getLogger(self.__class__.__name__)
+        # create devices
         self.button = Button()
         self.display = Display()
+        # create pages and display landing
         self.landing_page = LandingPage(size=self.display.size())
-        self.display.print(self.landing_page.image())
         self.rpict_page = RPICTPage(size=self.display.size())
+        self.linky_page = LinkyPage(size=self.display.size())
+        self.carousel = deque([self.landing_page, self.linky_page, self.rpict_page])
+        self.refresh_display()
+        # subscribe to events
         pubsub.subscribe(self.__class__.__name__, self.handle_message)
         self.logger.debug('Initialized')
 
     def handle_message(self, message):
         if type(message) == rpict.Measurements:
             self.rpict_page.refresh(message)
-            self.display.print(self.rpict_page.image())
+            self.refresh_display(page=self.rpict_page)
+        if type(message) == linky.Measurements:
+            self.linky_page.refresh(message)
+            self.refresh_display(page=self.linky_page)
         elif type(message) == button.WakeupEvent:
             self.logger.info('Received WakeupEvent')
             self.display.on()
@@ -35,7 +44,12 @@ class Interface:
             self.display.off()
         elif type(message) == button.PressEvent:
             self.logger.info('Received PressEvent')
-            self.display.on()
+            self.carousel.rotate(1)
+            self.refresh_display()
+
+    def refresh_display(self, page=None):
+        if not page or self.carousel[0] == page:
+            self.display.print(self.carousel[0].image())
 
     def stop(self):
         self.display.clear()

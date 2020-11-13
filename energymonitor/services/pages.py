@@ -2,7 +2,7 @@ from statistics import mean
 
 from PIL import Image, ImageChops, ImageDraw
 
-from energymonitor.devices import rpict
+from energymonitor.devices import rpict, linky
 from energymonitor.helpers.constants import MAX_POWER, MIN_POWER, LOGO, VERSION, FONT
 from energymonitor.helpers.imaging import clear, add_text, add_bar
 
@@ -57,3 +57,19 @@ class RPICTPage(Page):
         add_text(self.im, (0, 24), f'= {total_apparent_power:4.1f}kW')
         avg_vrms = mean([m.l1_vrms, m.l2_vrms, m.l3_vrms])
         add_text(self.im, (87, 24), f'{avg_vrms:5.2f}V')
+
+
+class LinkyPage(Page):
+
+    def __init__(self, size: (int, int)) -> None:
+        super().__init__(size)
+
+    def refresh(self, m: linky.Measurements):
+        # clear image
+        clear(self.im)
+        # draw line 1
+        add_text(self.im, (0, 0), f'ID: {m.ADCO}')
+        # draw line 2
+        add_text(self.im, (0, 8), f'> HP {m.HCHP}W')
+        # draw line 3
+        add_text(self.im, (0, 16), f'  HC {m.HCHC}W')
