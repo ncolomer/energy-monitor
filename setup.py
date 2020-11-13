@@ -15,12 +15,14 @@ setup(
         "energymonitor.helpers": ["data/*"],
     },
     install_requires=[
-        'RPi.GPIO~=0.7.0',
-        'gpiozero~=1.5.1',
-        'spidev~=3.5',
-        'pyserial~=3.4',
-        'Pillow~=7.2.0',
-        'influxdb~=5.3.0',
         'importlib-metadata~=1.0;python_version<"3.8"',
+        'influxdb~=5.3.0',
+        # oled
+        'adafruit-circuitpython-ssd1305~=1.3.3',
+        'Pillow~=7.2.0',
+        # gpio
+        'gpiozero~=1.5.1',
+        # rpict + uteleinfo
+        'pyserial~=3.4',
     ],
 )
