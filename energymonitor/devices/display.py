@@ -21,13 +21,13 @@ class Display:
         self._oled = adafruit_ssd1305.SSD1305_SPI(
             width=128, height=32,
             spi=board.SPI(),
-            dc=digitalio.DigitalInOut(board.D5),
-            reset=digitalio.DigitalInOut(board.D4),
-            cs=digitalio.DigitalInOut(board.D6)
+            dc=digitalio.DigitalInOut(board.D24),
+            reset=digitalio.DigitalInOut(board.D25),
+            cs=digitalio.DigitalInOut(board.CE0)
         )
 
         # Initialize sequence
-        self._oled.contrast(0xFF)
+        self._oled.contrast(0x00)
         self.print(LOGO)
         self.logger.info('Initialized')
 
