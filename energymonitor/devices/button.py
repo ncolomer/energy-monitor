@@ -27,7 +27,7 @@ class Button:
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(27, GPIO.IN, pull_up_down=GPIO.PUD_UP)  # GPIO27 pin 13
 
-        def when_pressed():
+        def when_pressed(channel):
             pubsub.publish(PressEvent())
             self.reset_inactivity_watcher(30)
         GPIO.add_event_detect(27, GPIO.FALLING, callback=when_pressed, bouncetime=100)
