@@ -41,7 +41,7 @@ Total price is roughly 130€, not counting shipping.
 ### Wiring
 
 | OLED | Raspberry Pi | Physical | BCM |
-| ---- | ------------ | -------- | --- |
+| :--: | :----------: | :------: | :-: |
 | VCC | 3.3 | 17 | - |
 | GND | GND | 20 | - |
 | DIN | MOSI | 19 | 10 |
