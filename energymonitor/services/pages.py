@@ -1,19 +1,31 @@
 from statistics import mean
 
-from PIL import Image
+from PIL import Image, ImageChops, ImageDraw
 
 from energymonitor.devices import rpict
-from energymonitor.helpers.constants import MAX_POWER, MIN_POWER
+from energymonitor.helpers.constants import MAX_POWER, MIN_POWER, LOGO, VERSION, FONT
 from energymonitor.helpers.imaging import clear, add_text, add_bar
 
 
 class Page:
 
-    def __init__(self, size :(int ,int)) -> None:
+    def __init__(self, size: (int, int)) -> None:
         self.im = Image.new(mode='1', size=size, color=0)
 
     def image(self) -> Image:
         return self.im
+
+
+class LandingPage(Page):
+
+    def __init__(self, size: (int, int)) -> None:
+        super().__init__(size)
+        self.im.paste(LOGO)
+        self.im = ImageChops.offset(self.im, xoffset=0, yoffset=-5)
+        version = f'v{VERSION}'
+        (font_width, font_height) = FONT.getsize(version)
+        ImageDraw.Draw(self.im).text(xy=((LOGO.size[0] - font_width) // 2, LOGO.size[1] - font_height - 1),
+                                     text=version, font=FONT, fill=255)
 
 
 class RPICTPage(Page):

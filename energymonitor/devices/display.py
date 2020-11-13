@@ -5,8 +5,6 @@ import board
 import digitalio
 from adafruit_ssd1305 import SET_DISP
 
-from energymonitor.helpers.constants import LOGO
-
 
 class Display:
     """
@@ -27,7 +25,6 @@ class Display:
 
         # Initialize sequence
         self._oled.contrast(0x00)
-        self.print(LOGO)
         self.logger.debug('Initialized')
 
     def size(self) -> (int, int):
