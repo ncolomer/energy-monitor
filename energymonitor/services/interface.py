@@ -53,8 +53,6 @@ class Interface:
         elif type(message) == button.PressEvent:
             self.logger.info('Received PressEvent')
             self.display.display_on()
-        elif type(message) == button.HeldEvent:
-            self.logger.info('Received HeldEvent')
 
     def stop(self):
         self.display.display_clear()
