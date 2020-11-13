@@ -1,7 +1,7 @@
 import logging
 import threading
 
-import gpiozero
+import RPi.GPIO as GPIO
 
 from energymonitor.services.dispatcher import pubsub
 
@@ -24,18 +24,15 @@ class Button:
     def __init__(self) -> None:
         self.logger = logging.getLogger(self.__class__.__name__)
 
-        button = gpiozero.Button(
-            pin=27,  # GPIO27 pin 13
-            pull_up=True,
-            bounce_time=0.050,  # in seconds
-        )
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(27, GPIO.IN, pull_up_down=GPIO.PUD_UP)  # GPIO27 pin 13
 
-        def when_pressed():
+        def when_pressed(channel):
             pubsub.publish(PressEvent())
             self.reset_inactivity_watcher(30)
-        button.when_pressed = when_pressed
+        GPIO.add_event_detect(27, GPIO.FALLING, callback=when_pressed, bouncetime=100)
 
-        self.reset_inactivity_watcher(2 * 60)
+        self.reset_inactivity_watcher(30)
         self.logger.debug('Initialized')
 
     def reset_inactivity_watcher(self, duration):

@@ -21,7 +21,7 @@ setup(
         'adafruit-circuitpython-ssd1305~=1.3.3',
         'Pillow~=7.2.0',
         # gpio
-        'gpiozero~=1.5.1',
+        'RPi.GPIO~=0.7.0',
         # rpict + uteleinfo
         'pyserial~=3.4',
     ],
