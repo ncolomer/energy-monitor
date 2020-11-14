@@ -15,11 +15,17 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(name)s - %(
 if __name__ == "__main__":
     logger = logging.getLogger('Main')
 
-    rpict = RPICT()
-    rpict.start()
+    try:
+        rpict = RPICT()
+        rpict.start()
+    except Exception as exc:
+        logger.warning('Could not start RPICT driver', exc_info=exc)
 
-    linky = Linky()
-    linky.start()
+    try:
+        linky = Linky()
+        linky.start()
+    except Exception as exc:
+        logger.warning('Could not start RPICT driver', exc_info=exc)
 
     interface = Interface()
     datalogger = DataLogger()
