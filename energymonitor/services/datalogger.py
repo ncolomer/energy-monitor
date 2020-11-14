@@ -4,6 +4,7 @@ from os import getenv
 from influxdb import InfluxDBClient
 
 from energymonitor.devices import rpict
+from energymonitor.devices import linky
 from energymonitor.services.dispatcher import pubsub
 
 
@@ -41,5 +42,14 @@ class DataLogger:
                     'l3_irms': message.l3_irms,
                     'l3_vrms': message.l3_vrms,
                     'l3_power_factor': message.l3_power_factor,
+                }
+            }])
+        elif type(message) == linky.Measurements:
+            self.influx.write_points([{
+                'measurement': 'energy.linky',
+                'time': message.timestamp.isoformat() + 'Z',
+                'fields': {
+                    'l1_real_power': message.HCHC,
+                    'l1_apparent_power': message.HCHP,
                 }
             }])
