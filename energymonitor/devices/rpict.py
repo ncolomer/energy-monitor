@@ -5,6 +5,7 @@ from threading import Thread
 
 from serial import Serial
 
+from energymonitor.config import RPICT_SERIAL_PORT
 from energymonitor.services.dispatcher import pubsub
 
 
@@ -39,7 +40,7 @@ class RPICT(Thread):
     def __init__(self):
         super().__init__(name=self.__class__.__name__)
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.serial = Serial(port='/dev/ttyAMA0', baudrate=38400)
+        self.serial = Serial(port=RPICT_SERIAL_PORT, baudrate=38400)
         self.logger.debug('Initialized')
 
     def run(self):

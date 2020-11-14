@@ -3,6 +3,7 @@ import threading
 
 import RPi.GPIO as GPIO
 
+from energymonitor.config import HMI_SLEEP_SECS, HMI_BUTTON_DEBOUNCE_MS
 from energymonitor.services.dispatcher import pubsub
 
 
@@ -38,10 +39,10 @@ class Button:
             else:
                 self.active = True
                 pubsub.publish(WakeupEvent())
-            self.reset_inactivity_watcher(30)
-        GPIO.add_event_detect(27, GPIO.FALLING, callback=when_pressed, bouncetime=200)
+            self.reset_inactivity_watcher(HMI_SLEEP_SECS)
+        GPIO.add_event_detect(27, GPIO.FALLING, callback=when_pressed, bouncetime=HMI_BUTTON_DEBOUNCE_MS)
 
-        self.reset_inactivity_watcher(30)
+        self.reset_inactivity_watcher(HMI_SLEEP_SECS)
         self.logger.debug('Initialized')
 
     def reset_inactivity_watcher(self, duration):

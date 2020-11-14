@@ -2,9 +2,10 @@ from statistics import mean
 
 from PIL import Image, ImageChops, ImageDraw
 
+from energymonitor import VERSION
+from energymonitor.config import HMI_MAX_LINE_POWER_WATTS as MAX_POWER
 from energymonitor.devices import rpict, linky
-from energymonitor.helpers.constants import MAX_POWER, MIN_POWER, LOGO, VERSION, FONT
-from energymonitor.helpers.imaging import clear, add_text, add_bar
+from energymonitor.helpers.imaging import LOGO, FONT, clear, add_text, add_bar
 
 
 class Page:
@@ -32,9 +33,9 @@ class RPICTPage(Page):
 
     def __init__(self, size: (int, int)) -> None:
         super().__init__(size)
-        self.max_l1_apparent_power = MIN_POWER
-        self.max_l2_apparent_power = MIN_POWER
-        self.max_l3_apparent_power = MIN_POWER
+        self.max_l1_apparent_power = 0
+        self.max_l2_apparent_power = 0
+        self.max_l3_apparent_power = 0
 
     def refresh(self, m: rpict.Measurements):
         # refresh state
