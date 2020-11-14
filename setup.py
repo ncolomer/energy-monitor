@@ -9,6 +9,12 @@ setup(
     license='The Unlicense',
     description='Energy Monitor application',
     url='https://github.com/ncolomer/energy-monitor',
+    classifiers=[
+        'Intended Audience :: Developers',
+        'Topic :: Home Automation',
+        'License :: OSI Approved :: The Unlicense (Unlicense)',
+        'Programming Language :: Python :: 3.7',
+    ],
     packages=find_packages(include='energymonitor.*'),
     scripts=['scripts/energy-monitor'],
     package_data={
