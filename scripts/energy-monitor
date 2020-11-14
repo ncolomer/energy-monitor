@@ -4,6 +4,7 @@ import logging
 import sys
 from signal import signal, SIGTERM
 
+from energymonitor.devices.linky import Linky
 from energymonitor.devices.rpict import RPICT
 from energymonitor.helpers.constants import VERSION
 from energymonitor.services.datalogger import DataLogger
@@ -16,6 +17,9 @@ if __name__ == "__main__":
 
     rpict = RPICT()
     rpict.start()
+
+    linky = Linky()
+    linky.start()
 
     interface = Interface()
     datalogger = DataLogger()
