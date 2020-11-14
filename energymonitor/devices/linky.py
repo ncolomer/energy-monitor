@@ -30,15 +30,6 @@ class Linky(Thread):
         self.logger.debug('Initialized')
 
     def run(self):
-        HCHC, HCHP = 0, 0
-        import random
-        from time import sleep
-        while True:
-            sleep(2)
-            HCHC += random.randint(0, 10)
-            HCHP += random.randint(0, 10)
-            pubsub.publish(Measurements(ADCO='12345', PTEC='HC..', HCHC=HCHC, HCHP=HCHP, timestamp=datetime.utcnow()))
-        ######
         buffer = {}
         self.serial.readline()  # Ignore (potentially incomplete) first line
         while True:
