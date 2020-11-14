@@ -2,7 +2,7 @@ from statistics import mean
 
 from PIL import Image, ImageChops, ImageDraw
 
-from energymonitor.devices import rpict
+from energymonitor.devices import rpict, linky
 from energymonitor.helpers.constants import MAX_POWER, MIN_POWER, LOGO, VERSION, FONT
 from energymonitor.helpers.imaging import clear, add_text, add_bar
 
@@ -21,10 +21,10 @@ class LandingPage(Page):
     def __init__(self, size: (int, int)) -> None:
         super().__init__(size)
         self.im.paste(LOGO)
-        self.im = ImageChops.offset(self.im, xoffset=0, yoffset=-5)
+        self.im = ImageChops.offset(self.im, xoffset=0, yoffset=-6)
         version = f'v{VERSION}'
         (font_width, font_height) = FONT.getsize(version)
-        ImageDraw.Draw(self.im).text(xy=((LOGO.size[0] - font_width) // 2, LOGO.size[1] - font_height - 1),
+        ImageDraw.Draw(self.im).text(xy=((LOGO.size[0] - font_width) // 2, LOGO.size[1] - font_height - 2),
                                      text=version, font=FONT, fill=255)
 
 
@@ -57,3 +57,21 @@ class RPICTPage(Page):
         add_text(self.im, (0, 24), f'= {total_apparent_power:4.1f}kW')
         avg_vrms = mean([m.l1_vrms, m.l2_vrms, m.l3_vrms])
         add_text(self.im, (87, 24), f'{avg_vrms:5.2f}V')
+
+
+class LinkyPage(Page):
+
+    def __init__(self, size: (int, int)) -> None:
+        super().__init__(size)
+
+    def refresh(self, m: linky.Measurements):
+        # clear image
+        clear(self.im)
+        # draw line 1
+        add_text(self.im, (0, 0), f' ID {m.ADCO}')
+        # draw line 3
+        selector = '>' if 'HP' in m.PTEC else ' '
+        add_text(self.im, (0, 16), f'{selector}HP {m.HCHP}W')
+        # draw line 4
+        selector = '>' if 'HC' in m.PTEC else ' '
+        add_text(self.im, (0, 24), f'{selector}HC {m.HCHC}W')

@@ -4,6 +4,7 @@ import logging
 import sys
 from signal import signal, SIGTERM
 
+from energymonitor.devices.linky import Linky
 from energymonitor.devices.rpict import RPICT
 from energymonitor.helpers.constants import VERSION
 from energymonitor.services.datalogger import DataLogger
@@ -14,8 +15,17 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(name)s - %(
 if __name__ == "__main__":
     logger = logging.getLogger('Main')
 
-    rpict = RPICT()
-    rpict.start()
+    try:
+        rpict = RPICT()
+        rpict.start()
+    except Exception as exc:
+        logger.warning('Could not start RPICT driver', exc_info=exc)
+
+    try:
+        linky = Linky()
+        linky.start()
+    except Exception as exc:
+        logger.warning('Could not start RPICT driver', exc_info=exc)
 
     interface = Interface()
     datalogger = DataLogger()
