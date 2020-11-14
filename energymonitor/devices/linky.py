@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from threading import Thread
 
-from serial import Serial
+from serial import Serial, PARITY_EVEN
 
 from energymonitor.services.dispatcher import pubsub
 
@@ -26,7 +26,7 @@ class Linky(Thread):
     def __init__(self):
         super().__init__(name=self.__class__.__name__)
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.serial = Serial(port='/dev/ttyUSB0', baudrate=1200)
+        self.serial = Serial(port='/dev/ttyUSB0', baudrate=1200, bytesize=7, parity=PARITY_EVEN)
         self.logger.debug('Initialized')
 
     def run(self):
@@ -34,7 +34,7 @@ class Linky(Thread):
         self.serial.readline()  # Ignore (potentially incomplete) first line
         while True:
             line = self.serial.readline().decode()
-            (key, value) = line.strip().split()[0:1]
+            (key, value) = line.strip().split()[0:2]
             # publish if we hit a new frame
             if key == 'ADCO':
                 try:
