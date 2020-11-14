@@ -21,10 +21,10 @@ class LandingPage(Page):
     def __init__(self, size: (int, int)) -> None:
         super().__init__(size)
         self.im.paste(LOGO)
-        self.im = ImageChops.offset(self.im, xoffset=0, yoffset=-5)
+        self.im = ImageChops.offset(self.im, xoffset=0, yoffset=-6)
         version = f'v{VERSION}'
         (font_width, font_height) = FONT.getsize(version)
-        ImageDraw.Draw(self.im).text(xy=((LOGO.size[0] - font_width) // 2, LOGO.size[1] - font_height - 1),
+        ImageDraw.Draw(self.im).text(xy=((LOGO.size[0] - font_width) // 2, LOGO.size[1] - font_height - 2),
                                      text=version, font=FONT, fill=255)
 
 
