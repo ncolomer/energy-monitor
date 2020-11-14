@@ -1,3 +1,4 @@
+import inspect
 import logging
 from dataclasses import dataclass
 from datetime import datetime
@@ -15,6 +16,13 @@ class Measurements:
     HCHC: int  # heures creuses index, in watts
     HCHP: int  # heures pleines index, in watts
     timestamp: datetime = None
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls(**{
+            k: v for k, v in d.items()
+            if k in inspect.signature(cls).parameters
+        })
 
 
 class Linky(Thread):
@@ -38,11 +46,12 @@ class Linky(Thread):
             # publish if we hit a new frame
             if key == 'ADCO':
                 try:
-                    measurements = Measurements(timestamp=datetime.utcnow(), **buffer)
+                    buffer['timestamp'] = datetime.utcnow()
+                    measurements = Measurements.from_dict(buffer)
                     self.logger.debug('Read from Linky: %s', measurements)
                     pubsub.publish(measurements)
                     buffer = {}
-                except TypeError:
-                    self.logger.debug('Incomplete frame from Linky')
+                except TypeError as exc:
+                    self.logger.debug('Incomplete frame from Linky: %s', buffer, exc_info=exc)
                     buffer = {}
             buffer[key] = value
