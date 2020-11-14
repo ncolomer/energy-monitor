@@ -38,6 +38,8 @@ class Interface:
             self.refresh_display(page=self.linky_page)
         elif type(message) == button.WakeupEvent:
             self.logger.info('Received WakeupEvent')
+            self.carousel = deque([self.rpict_page, self.landing_page, self.linky_page])
+            self.refresh_display()
             self.display.on()
         elif type(message) == button.InactivityEvent:
             self.logger.info('Received InactivityEvent')
