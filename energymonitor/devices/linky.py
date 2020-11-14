@@ -6,6 +6,7 @@ from threading import Thread
 
 from serial import Serial, PARITY_EVEN
 
+from energymonitor.config import LINKY_SERIAL_PORT
 from energymonitor.services.dispatcher import pubsub
 
 
@@ -34,7 +35,7 @@ class Linky(Thread):
     def __init__(self):
         super().__init__(name=self.__class__.__name__)
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.serial = Serial(port='/dev/ttyUSB0', baudrate=1200, bytesize=7, parity=PARITY_EVEN)
+        self.serial = Serial(port=LINKY_SERIAL_PORT, baudrate=1200, bytesize=7, parity=PARITY_EVEN)
         self.logger.debug('Initialized')
 
     def run(self):

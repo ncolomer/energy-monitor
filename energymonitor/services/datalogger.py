@@ -1,10 +1,9 @@
 import logging
-from os import getenv
 
 from influxdb import InfluxDBClient
 
-from energymonitor.devices import rpict
-from energymonitor.devices import linky
+from energymonitor.config import INFLUX_DB_HOST, INFLUX_DB_PORT, INFLUX_DB_DATABASE, INFLUX_DB_PREFIX
+from energymonitor.devices import linky, rpict
 from energymonitor.services.dispatcher import pubsub
 
 
@@ -15,14 +14,14 @@ class DataLogger:
 
     def __init__(self) -> None:
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.influx = InfluxDBClient(host=getenv('INFLUX_DB_HOST'), port=8086, database='metrology')
+        self.influx = InfluxDBClient(host=INFLUX_DB_HOST, port=INFLUX_DB_PORT, database=INFLUX_DB_DATABASE)
         pubsub.subscribe(self.__class__.__name__, self.handle_message)
         self.logger.debug('Initialized')
 
     def handle_message(self, message):
         if type(message) == rpict.Measurements:
             self.influx.write_points([{
-                'measurement': 'energy.rpict',
+                'measurement': f'{INFLUX_DB_PREFIX}.rpict',
                 'time': message.timestamp.isoformat() + 'Z',
                 'fields': {
                     'l1_real_power': message.l1_real_power,
@@ -46,7 +45,7 @@ class DataLogger:
             }])
         elif type(message) == linky.Measurements:
             self.influx.write_points([{
-                'measurement': 'energy.linky',
+                'measurement': f'{INFLUX_DB_PREFIX}.linky',
                 'time': message.timestamp.isoformat() + 'Z',
                 'fields': {
                     'hc_index': message.HCHC,

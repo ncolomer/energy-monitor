@@ -4,13 +4,14 @@ import logging
 import sys
 from signal import signal, SIGTERM
 
+from energymonitor import VERSION
+from energymonitor.config import LOG_LEVEL
 from energymonitor.devices.linky import Linky
 from energymonitor.devices.rpict import RPICT
-from energymonitor.helpers.constants import VERSION
 from energymonitor.services.datalogger import DataLogger
 from energymonitor.services.interface import Interface
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(name)s - %(levelname)s: %(message)s')
+logging.basicConfig(stream=sys.stdout, level=LOG_LEVEL, format='%(name)s - %(levelname)s: %(message)s')
 
 if __name__ == "__main__":
     logger = logging.getLogger('Main')

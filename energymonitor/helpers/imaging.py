@@ -1,7 +1,11 @@
-from PIL import Image, ImageDraw
+from PIL import ImageDraw
+from PIL import ImageFont, Image
+from pkg_resources import resource_stream
 
-from energymonitor.helpers.constants import FONT
 from energymonitor.helpers.maths import clamp
+
+FONT = ImageFont.truetype(resource_stream(__name__, 'data/ProggyTiny.ttf'), size=15)
+LOGO = Image.open(resource_stream(__name__, 'data/logo.xbm'))
 
 
 def clear(image: Image):
