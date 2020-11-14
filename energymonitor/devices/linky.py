@@ -41,8 +41,10 @@ class Linky(Thread):
         buffer = {}
         self.serial.readline()  # Ignore (potentially incomplete) first line
         while True:
+            # read and parse line
             line = self.serial.readline().decode()
             (key, value) = line.strip().split()[0:2]
+            if key in ('HCHC', 'HCHP'): value = int(value)
             # publish if we hit a new frame
             if key == 'ADCO':
                 try:
