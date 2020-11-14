@@ -49,7 +49,7 @@ class DataLogger:
                 'measurement': 'energy.linky',
                 'time': message.timestamp.isoformat() + 'Z',
                 'fields': {
-                    'l1_real_power': message.HCHC,
-                    'l1_apparent_power': message.HCHP,
+                    'hc_index': message.HCHC,
+                    'hp_index': message.HCHP,
                 }
             }])
