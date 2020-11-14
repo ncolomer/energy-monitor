@@ -69,7 +69,9 @@ class LinkyPage(Page):
         clear(self.im)
         # draw line 1
         add_text(self.im, (0, 0), f' ID {m.ADCO}')
-        # draw line 2
-        add_text(self.im, (0, 16), f'>HP {m.HCHP}W')
         # draw line 3
-        add_text(self.im, (0, 24), f' HC {m.HCHC}W')
+        selector = '>' if 'HP' in m.PTEC else ' '
+        add_text(self.im, (0, 16), f'{selector}HP {m.HCHP}W')
+        # draw line 4
+        selector = '>' if 'HC' in m.PTEC else ' '
+        add_text(self.im, (0, 24), f'{selector}HC {m.HCHC}W')
