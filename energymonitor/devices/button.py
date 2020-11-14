@@ -39,7 +39,7 @@ class Button:
                 self.active = True
                 pubsub.publish(WakeupEvent())
             self.reset_inactivity_watcher(30)
-        GPIO.add_event_detect(27, GPIO.FALLING, callback=when_pressed, bouncetime=100)
+        GPIO.add_event_detect(27, GPIO.FALLING, callback=when_pressed, bouncetime=200)
 
         self.reset_inactivity_watcher(30)
         self.logger.debug('Initialized')
