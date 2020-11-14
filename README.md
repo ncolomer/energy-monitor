@@ -16,6 +16,19 @@ Description
 
 ### Configuration
 
+| Envvar name | Description | Default |
+|-|-|-|
+| `HMI_SLEEP_SECS` | Duration in seconds before shutting down display | `30` |
+| `HMI_MAX_LINE_POWER_WATTS` | Max expected line power in watts | `6900` |
+| `HMI_BUTTON_DEBOUNCE_MS` | Push button debounce duration in milliseconds | `200` |
+| `RPICT_SERIAL_PORT` | Serial port for RPICT | `/dev/ttyAMA0` |
+| `LINKY_SERIAL_PORT` | Serial port for uTeleinfo (Linky) | `/dev/ttyUSB0` |
+| `INFLUX_DB_HOST` | InfluxDB host | `localhost` |
+| `INFLUX_DB_PORT` | InfluxDB port | `8086` |
+| `INFLUX_DB_DATABASE` | InfluxDB database | `metrology` |
+| `INFLUX_DB_PREFIX` | Application's measures prefix | `energy` |
+| `LOG_LEVEL` | Application log level | `INFO` |
+
 ### Run as a service
 
 ## Hardware
