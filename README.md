@@ -1,6 +1,17 @@
 # energy-monitor
 
-Description
+<img width="512" alt="energy-monitor module" src="https://user-images.githubusercontent.com/941891/99180442-a545fd00-2726-11eb-9eb4-781ce5c0c186.png">
+
+> You can't improve what you don't measure
+
+This project is a DIY module + a Python application that aim at measuring electrical consumption metrics, display collected values on an OLED display, and send them to an external InfluxDB database for historization. 
+
+The module was built to fit any standard electrical panel (same form factor as a circuit breaker). 
+It does not collect data directly but uses data from [Lechacal](http://lechacal.com/)'s [RPICT](http://lechacal.com/wiki/index.php?title=Raspberrypi_Current_and_Temperature_Sensor_Adaptor) and [Linky](https://fr.wikipedia.org/wiki/Linky) (french power supply counter).
+
+I built this project to observe and store my own energy consumption, to eventually improve them. And also because it looked —and was— a cool DIY project.
+
+![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/ncolomer/energy-monitor?label=latest%20release&sort=semver&style=for-the-badge)
 
 ## Application
 
@@ -8,13 +19,33 @@ Description
 
 #### Startup screen
 
-#### Instantaneous metrics screen
+The screen and the current application version are displayed at application startup.
+It also belongs to the page carousel, in the last position.
 
-#### Cumulated metrics screens
+> <img width="512" alt="landing" src="https://user-images.githubusercontent.com/941891/99180029-04097780-2723-11eb-8937-fbdda2956b72.png">
 
-#### Auto-off
+#### Instantaneous metrics screen (RPICT)
+
+This screen displays instantaneous metrics measured from RPICT:
+- lines apparent power value, also displayed on a bar which shows the max value seen since boot
+- sum of consumed lines power
+- mean of lines rms voltage
+
+It is the first displayed when waking up from sleep.
+
+> <img width="512" alt="rpict" src="https://user-images.githubusercontent.com/941891/99180031-053aa480-2723-11eb-8e47-bc9ecee9510e.png">
+
+#### Cumulated metrics screens (Linky)
+
+This screen displays instantaneous metrics collected from Linky:
+- the counter unique id
+- "heures creuses" and "heures pleines" indices, used for billing
+
+> <img width="512" alt="linky" src="https://user-images.githubusercontent.com/941891/99180030-04a20e00-2723-11eb-9fb6-2d6153d8b24a.png">
 
 ### Configuration
+
+You can configure the application by providing the following environment variables:
 
 | Envvar name | Description | Default |
 |-|-|-|
