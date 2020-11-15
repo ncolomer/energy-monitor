@@ -6,10 +6,10 @@
 
 This project is a DIY module + a Python application that aim at measuring electrical consumption metrics, display collected values on an OLED display, and send them to an external InfluxDB database for historization. 
 
-The module was built to fit any standard electrical panel (same form factor as a circuit breaker). 
+The module was designed to fit any standard electrical panel (same form factor as a circuit breaker). 
 It does not collect data directly but rather fetches metrics from [Lechacal](http://lechacal.com/)'s [RPICT](http://lechacal.com/wiki/index.php?title=Raspberrypi_Current_and_Temperature_Sensor_Adaptor) module and Enedis [Linky](https://fr.wikipedia.org/wiki/Linky) electric meter (France national power provider).
 
-I built this project to observe and store my own energy consumption, to eventually improve them. And also because it looked a cool DIY project (it actually was!).
+I built this project to observe and store my own energy consumption, to eventually improve it. And, well... also because it looked a cool DIY project (it actually was!).
 
 :warning: My electrical installation has three-phase power supply. Even though the project can run for a one-phase power, it might also need some adaptation. Any contribution welcome!
 
@@ -23,12 +23,14 @@ This project includes a Python application that handles everything, from I/O to 
 
 #### Startup screen
 
+> <img height="96" alt="landing screen" src="https://user-images.githubusercontent.com/941891/99180029-04097780-2723-11eb-8937-fbdda2956b72.png">
+
 This screen displays the project logo and the current application version.
 It is shown at application startup and also belongs to the page carousel (last position).
 
-> <img height="96" alt="landing screen" src="https://user-images.githubusercontent.com/941891/99180029-04097780-2723-11eb-8937-fbdda2956b72.png">
-
 #### Instantaneous metrics screen (RPICT)
+
+> <img height="96" alt="rpict screen" src="https://user-images.githubusercontent.com/941891/99190605-b7945b00-2767-11eb-86c6-84ab7913e94c.png">
 
 This screen displays instantaneous metrics measured from RPICT:
 - lines apparent power value with a gauge that shows the max seen value since boot
@@ -37,15 +39,13 @@ This screen displays instantaneous metrics measured from RPICT:
 
 It is the first displayed screen when waking up from sleep.
 
-> <img height="96" alt="rpict screen" src="https://user-images.githubusercontent.com/941891/99190605-b7945b00-2767-11eb-86c6-84ab7913e94c.png">
-
 #### Cumulated metrics screens (Linky)
+
+> <img height="96" alt="linky screen" src="https://user-images.githubusercontent.com/941891/99190602-b6fbc480-2767-11eb-8ca8-b6906ce92347.png">
 
 This screen displays instantaneous metrics collected from Linky:
 - Linky's counter unique id
 - "heures creuses" and "heures pleines" indices, used for billing
-
-> <img height="96" alt="linky screen" src="https://user-images.githubusercontent.com/941891/99190602-b6fbc480-2767-11eb-8ca8-b6906ce92347.png">
 
 ### Installation
 
@@ -62,14 +62,14 @@ To run the energy-monitor application on a Raspberry Pi:
   See [Configuration](#Configuration) section below for a full list of overridable configuration.
 
 For advanced users:
-- install the Python application in a virtualenv
-- use a systemd service to launch the application at startup
+- install the application in a Python virtualenv
+- use a systemd service to launch the application at system startup
 
 ### Configuration
 
 You can configure the application by providing the following environment variables:
 
-| Envvar name | Description | Default |
+| Environment variable | Description | Default |
 |-|-|-|
 | `HMI_SLEEP_SECS` | Duration in seconds before shutting down display | `30` |
 | `HMI_MAX_LINE_POWER_WATTS` | Max expected line power in watts | `6900` |
@@ -106,6 +106,10 @@ The following table presents the partlist needed to build a full module:
 Total price is roughly 130€, not counting shipping.
 
 ### Wiring
+
+The following tables uses the following Raspberry Pi pinout as reference:
+
+> <img height="128" alt="raspberry pi pinout reference" src="https://user-images.githubusercontent.com/941891/99191467-2b853200-276d-11eb-9982-401c0d7a61ec.png">
 
 In order to achieve wiring between parts, you may need the following tools/parts:
 
@@ -146,14 +150,21 @@ In order to achieve wiring between parts, you may need the following tools/parts
 
 ### Enclosure
 
-> <img height="256" alt="module cad front" src="https://user-images.githubusercontent.com/941891/99189834-9fbad800-2763-11eb-9791-2a64bb1d46d2.png"> <img height="256" alt="module cad back" src="https://user-images.githubusercontent.com/941891/99189832-9df11480-2763-11eb-82bb-96ae700c2daf.png">
+> <img height="256" alt="print plate" src="https://user-images.githubusercontent.com/941891/99191792-51133b00-276f-11eb-9765-e226e3d1bb20.png"> <img height="256" alt="module cad front" src="https://user-images.githubusercontent.com/941891/99189834-9fbad800-2763-11eb-9791-2a64bb1d46d2.png"> <img height="256" alt="module cad back" src="https://user-images.githubusercontent.com/941891/99189832-9df11480-2763-11eb-82bb-96ae700c2daf.png">
 
-You can find enclosure's STL files in the project's [`enclosure`](https://github.com/ncolomer/energy-monitor/tree/master/enclosure) directory. 
-It was designed on [Autodesk Fusion 360](https://www.autodesk.com/products/fusion-360).
-It contains 3 clippable parts so that it is easier and faster to print on a 3D printer.
-The Raspberry Pi Zero (fixed with the RPICT module with Brass Standoffs) and the oled screen are both clipped to 3D-printed parts.
+The enclosure contains 3 clippable parts so that it is easier and faster to print on a 3D printer. It was designed on [Autodesk Fusion 360](https://www.autodesk.com/products/fusion-360).
+You can find STL files in the project's [`enclosure`](https://github.com/ncolomer/energy-monitor/tree/master/enclosure) directory.
 
-Assembly only needs a bit of epoxy to hold the push button in place. Don't forget to place the 3D-printed button before glueing the push button!
+I printed mine in 6 hours using the following parameters with [PrusaSlicer](https://www.prusa3d.com/prusaslicer/):
+- 0.20mm SPEED profile
+- white 1.75 PLA filament
+- 20% infill
+- support on build plate only
+
+Notes:
+- don't forget to print the button in your favorite color!
+- the Raspberry Pi Zero (fixed with the RPICT module with Brass Standoffs) and the oled screen are both clipped to 3D-printed parts.
+- assembly only needs a bit of epoxy to hold the push button in place. Don't forget to place the 3D-printed button before glueing the push button!
 
 ## Photo gallery
 
