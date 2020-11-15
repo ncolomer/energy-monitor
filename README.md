@@ -26,7 +26,7 @@ This project includes a Python application that handles everything, from I/O to 
 This screen displays the project logo and the current application version.
 It is shown at application startup and also belongs to the page carousel (last position).
 
-> <img width="512" alt="landing" src="https://user-images.githubusercontent.com/941891/99180029-04097780-2723-11eb-8937-fbdda2956b72.png">
+> <img height="96" alt="landing screen" src="https://user-images.githubusercontent.com/941891/99180029-04097780-2723-11eb-8937-fbdda2956b72.png">
 
 #### Instantaneous metrics screen (RPICT)
 
@@ -37,7 +37,7 @@ This screen displays instantaneous metrics measured from RPICT:
 
 It is the first displayed screen when waking up from sleep.
 
-> <img width="512" alt="rpict" src="https://user-images.githubusercontent.com/941891/99180031-053aa480-2723-11eb-8e47-bc9ecee9510e.png">
+> <img height="96" alt="rpict screen" src="https://user-images.githubusercontent.com/941891/99180031-053aa480-2723-11eb-8e47-bc9ecee9510e.png">
 
 #### Cumulated metrics screens (Linky)
 
@@ -45,7 +45,7 @@ This screen displays instantaneous metrics collected from Linky:
 - Linky's counter unique id
 - "heures creuses" and "heures pleines" indices, used for billing
 
-> <img width="512" alt="linky" src="https://user-images.githubusercontent.com/941891/99180030-04a20e00-2723-11eb-9fb6-2d6153d8b24a.png">
+> <img height="96" alt="linky screen" src="https://user-images.githubusercontent.com/941891/99180030-04a20e00-2723-11eb-9fb6-2d6153d8b24a.png">
 
 ### Installation
 
@@ -55,14 +55,14 @@ To run the energy-monitor application on a Raspberry Pi:
 - configure the system to enable SPI and UART via the [`raspi-config`](https://www.raspberrypi.org/documentation/configuration/raspi-config.md) helper
 - intall `libopenjp2-7` and `libtiff5` packages using command `apt-get install -y libopenjp2-7 libtiff5`
 - ensure user `pi` belongs to group `spi`, `gpio` and `dialout` using command `usermod -aG spi,gpio,dialout pi`
-- install energy-monitor python package with `pip install {wheel url}`. 
+- install energy-monitor Python package with `pip install {wheel url}`. 
   You can get the wheel url from the [Github Release](https://github.com/ncolomer/energy-monitor/releases) section.
 - run the application with the `energy-monitor` binary.
   You can override configuration via environment variable using syntax `env CONFIG1=VALUE1 CONFIG2=VALUE ... energy-monitor`.
   See [Configuration](#Configuration) section below for a full list of overridable configuration.
 
 For advanced users:
-- install the python application in a virtualenv
+- install the Python application in a virtualenv
 - use a systemd service to launch the application at startup
 
 ### Configuration
@@ -87,7 +87,7 @@ You can configure the application by providing the following environment variabl
 
 ### Parts
 
-The following table presents the partlist needed for a full module:
+The following table presents the partlist needed to build a full module:
 
 | Part | Quantity | Price | Links |
 |-|-:|-:|-|
@@ -128,8 +128,11 @@ You may need the following tools/parts to achieve wiring between parts:
 
 ### Enclosure
 
+> <img height="256" alt="module cad front" src="https://user-images.githubusercontent.com/941891/99189834-9fbad800-2763-11eb-9791-2a64bb1d46d2.png"> <img height="256" alt="module cad back" src="https://user-images.githubusercontent.com/941891/99189832-9df11480-2763-11eb-82bb-96ae700c2daf.png">
+
 You can find enclosure's STL files in the project's [`enclosure`](https://github.com/ncolomer/energy-monitor/tree/master/enclosure) directory. 
 It was designed on [Autodesk Fusion 360](https://www.autodesk.com/products/fusion-360).
-It contains 3 clippable parts so that it is easier (and quicker) to print on a 3D printer.
+It contains 3 clippable parts so that it is easier and faster to print on a 3D printer.
+The Raspberry Pi Zero (fixed with the RPICT module with Brass Standoffs) and the oled screen are both clipped to 3D-printed parts.
 
-Assembly only needs a bit of epoxy to maintain the push button in place. Don't forget to place the 3D-printed button before!
+Assembly only needs a bit of epoxy to maintain the push button in place. Don't forget to place the 3D-printed button before glueing the push button!
