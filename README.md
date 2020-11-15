@@ -150,7 +150,7 @@ In order to achieve wiring between parts, you may need the following tools/parts
 
 ### Enclosure
 
-> <img height="256" alt="print plate" src="https://user-images.githubusercontent.com/941891/99191792-51133b00-276f-11eb-9765-e226e3d1bb20.png"> <img height="256" alt="module cad front" src="https://user-images.githubusercontent.com/941891/99189834-9fbad800-2763-11eb-9791-2a64bb1d46d2.png"> <img height="256" alt="module cad back" src="https://user-images.githubusercontent.com/941891/99189832-9df11480-2763-11eb-82bb-96ae700c2daf.png">
+> <img height="192" alt="print plate" src="https://user-images.githubusercontent.com/941891/99191792-51133b00-276f-11eb-9765-e226e3d1bb20.png"> <img height="192" alt="module cad front" src="https://user-images.githubusercontent.com/941891/99189834-9fbad800-2763-11eb-9791-2a64bb1d46d2.png"> <img height="192" alt="module cad back" src="https://user-images.githubusercontent.com/941891/99189832-9df11480-2763-11eb-82bb-96ae700c2daf.png">
 
 The enclosure contains 3 clippable parts so that it is easier and faster to print on a 3D printer. It was designed on [Autodesk Fusion 360](https://www.autodesk.com/products/fusion-360).
 You can find STL files in the project's [`enclosure`](https://github.com/ncolomer/energy-monitor/tree/master/enclosure) directory.
