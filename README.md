@@ -2,7 +2,7 @@
 
 > <img height="256" alt="energy-monitor module" src="https://user-images.githubusercontent.com/941891/99180442-a545fd00-2726-11eb-9eb4-781ce5c0c186.png"> <img height="256" alt="installed energy-monitor module" src="https://user-images.githubusercontent.com/941891/99187647-32557a00-2758-11eb-86f0-c68d863e7cef.png"> <img height="256" alt="connections of energy-monitor module" src="https://user-images.githubusercontent.com/941891/99187649-35e90100-2758-11eb-9a7a-da070b3239cc.png">
 
-> You can't improve what you don't measure
+> “You can't improve what you don't measure”
 
 This project is a DIY module + a Python application that aim at measuring electrical consumption metrics, display collected values on an OLED display, and send them to an external InfluxDB database for historization. 
 
@@ -138,7 +138,7 @@ In order to achieve wiring between parts, you may need the following tools/parts
 | RES | GPIO6 | 22 | 25 |
 
 #### Push button
-GPIO27 pin 13
+
 | Push Button | Raspberry Pi | Physical | BCM |
 | :--: | :----------: | :------: | :-: |
 | 1 | GPIO27 | 13 | 27 |
