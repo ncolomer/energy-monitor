@@ -1,13 +1,13 @@
 # energy-monitor
 
-<img width="512" alt="energy-monitor module" src="https://user-images.githubusercontent.com/941891/99180442-a545fd00-2726-11eb-9eb4-781ce5c0c186.png">
+<img height="256" alt="energy-monitor module" src="https://user-images.githubusercontent.com/941891/99180442-a545fd00-2726-11eb-9eb4-781ce5c0c186.png"> <img height="256" alt="installed energy-monitor module" src="https://user-images.githubusercontent.com/941891/99187647-32557a00-2758-11eb-86f0-c68d863e7cef.png"> <img height="256" alt="connections of energy-monitor module" src="https://user-images.githubusercontent.com/941891/99187649-35e90100-2758-11eb-9a7a-da070b3239cc.png">
 
 > You can't improve what you don't measure
 
 This project is a DIY module + a Python application that aim at measuring electrical consumption metrics, display collected values on an OLED display, and send them to an external InfluxDB database for historization. 
 
 The module was built to fit any standard electrical panel (same form factor as a circuit breaker). 
-It does not collect data directly but uses data from [Lechacal](http://lechacal.com/)'s [RPICT](http://lechacal.com/wiki/index.php?title=Raspberrypi_Current_and_Temperature_Sensor_Adaptor) and [Linky](https://fr.wikipedia.org/wiki/Linky) (french power supply counter).
+It does not collect data directly but rather fetches metrics from [Lechacal](http://lechacal.com/)'s [RPICT](http://lechacal.com/wiki/index.php?title=Raspberrypi_Current_and_Temperature_Sensor_Adaptor) module and Enedis [Linky](https://fr.wikipedia.org/wiki/Linky) electric meter (France national power provider).
 
 I built this project to observe and store my own energy consumption, to eventually improve them. And also because it looked —and was— a cool DIY project.
 
@@ -15,33 +15,52 @@ I built this project to observe and store my own energy consumption, to eventual
 
 ## Application
 
+This project includes a Python application that handles everything, from I/O to display.
+
 ### Interface
 
 #### Startup screen
 
-The screen and the current application version are displayed at application startup.
-It also belongs to the page carousel, in the last position.
+This screen displays the project logo and the current application version.
+It is shown at application startup and also belongs to the page carousel (last position).
 
-> <img width="512" alt="landing" src="https://user-images.githubusercontent.com/941891/99180029-04097780-2723-11eb-8937-fbdda2956b72.png">
+<img width="512" alt="landing" src="https://user-images.githubusercontent.com/941891/99180029-04097780-2723-11eb-8937-fbdda2956b72.png">
 
 #### Instantaneous metrics screen (RPICT)
 
 This screen displays instantaneous metrics measured from RPICT:
-- lines apparent power value, also displayed on a bar which shows the max value seen since boot
+- lines apparent power value with a gauge that shows the max seen value since boot
 - sum of consumed lines power
-- mean of lines rms voltage
+- mean of lines RMS voltage
 
-It is the first displayed when waking up from sleep.
+It is the first displayed screen when waking up from sleep.
 
-> <img width="512" alt="rpict" src="https://user-images.githubusercontent.com/941891/99180031-053aa480-2723-11eb-8e47-bc9ecee9510e.png">
+<img width="512" alt="rpict" src="https://user-images.githubusercontent.com/941891/99180031-053aa480-2723-11eb-8e47-bc9ecee9510e.png">
 
 #### Cumulated metrics screens (Linky)
 
 This screen displays instantaneous metrics collected from Linky:
-- the counter unique id
+- Linky's counter unique id
 - "heures creuses" and "heures pleines" indices, used for billing
 
-> <img width="512" alt="linky" src="https://user-images.githubusercontent.com/941891/99180030-04a20e00-2723-11eb-9fb6-2d6153d8b24a.png">
+<img width="512" alt="linky" src="https://user-images.githubusercontent.com/941891/99180030-04a20e00-2723-11eb-9fb6-2d6153d8b24a.png">
+
+### Installation
+
+To run the energy-monitor application on a Raspberry Pi:
+- install a fresh [Raspberry Pi OS](https://www.raspberrypi.org/software/operating-systems/) on a SD card
+- insert the SD card in any Raspberry you own and open a terminal (desktop or ssh)
+- configure the system to enable SPI and UART via the `sudo raspi-config` helper
+- intall `libopenjp2-7` and `libtiff5` packages using command `sudo apt-get install -y libopenjp2-7 libtiff5`
+- ensure user `pi` belongs to group `spi`, `gpio` and `dialout` using command `sudo usermod -aG spi,gpio,dialout pi`
+- install energy-monitor python package with `sudo pip install {wheel url}`. 
+  You can get the wheel url from the [Github Release](https://github.com/ncolomer/energy-monitor/releases) section.
+- run the application with the `energy-monitor` binary.
+  You can override parameters via envvars using syntax `env CONFIG1=VALUE1 CONFIG2=VALUE ... energy-monitor`
+
+Advices (for advanced users):
+- install the python application in a virtualenv
+- use a systemd service to launch the application at startup
 
 ### Configuration
 
@@ -60,7 +79,6 @@ You can configure the application by providing the following environment variabl
 | `INFLUX_DB_PREFIX` | Application's measures prefix | `energy` |
 | `LOG_LEVEL` | Application log level | `INFO` |
 
-### Run as a service
 
 ## Hardware
 
