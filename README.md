@@ -163,7 +163,7 @@ I printed mine in 6 hours using the following parameters with [PrusaSlicer](http
 
 Notes:
 - don't forget to print the button in your favorite color!
-- the Raspberry Pi Zero (fixed with the RPICT module with Brass Standoffs) and the oled screen are both clipped to 3D-printed parts.
+- the Raspberry Pi Zero (fixed with the RPICT module with Brass Standoffs) and the oled screen are both clipped inside the enclosure.
 - assembly only needs a bit of epoxy to hold the push button in place. Don't forget to place the 3D-printed button before glueing the push button!
 
 ## Photo gallery
