@@ -72,7 +72,7 @@ class LinkyPage(Page):
         add_text(self.im, (0, 0), f' ID {m.ADCO}')
         # draw line 3
         selector = '>' if 'HP' in m.PTEC else ' '
-        add_text(self.im, (0, 16), f'{selector}HP {m.HCHP}W')
+        add_text(self.im, (0, 16), f'{selector}HP {m.HCHP/1000:9.3f}kW')
         # draw line 4
         selector = '>' if 'HC' in m.PTEC else ' '
-        add_text(self.im, (0, 24), f'{selector}HC {m.HCHC}W')
+        add_text(self.im, (0, 24), f'{selector}HC {m.HCHC/1000:9.3f}kW')
