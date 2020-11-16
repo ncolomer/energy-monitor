@@ -15,11 +15,25 @@ I built this project to observe and store my own energy consumption, to eventual
 
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/ncolomer/energy-monitor?label=latest%20release&sort=semver&style=for-the-badge)
 
+**Table of contents**
+
+* [Application](#application)
+  - [Interface](#interface)
+  - [Installation](#installation)
+  - [Configuration](#configuration)
+* [Hardware](#hardware)
+  - [Parts](#parts)
+  - [Wiring](#wiring)
+  - [Enclosure](#enclosure)
+* [Photo gallery](#photo-gallery)
+
 ## Application
 
 This project includes a Python application that handles everything, from I/O to display.
 
 ### Interface
+
+The user interface is composed of several pages that can by cycled using the push button (like a carousel).
 
 #### Startup screen
 
@@ -84,6 +98,11 @@ You can configure the application by providing the following environment variabl
 
 
 ## Hardware
+
+The module is composed of several parts listed in the [Parts](#parts) section.
+Electronics parts (push button, OLED display and RPICT) are wired to the Raspberry Pi, see [Wiring](#wiring) section.
+RPICT is tied to the Raspberry Pi module via 29.7mm Brass Standoffs, they are both tied to enclosure's part 1 via clips.
+The OLED display is tied to enclosure's part 3 the same way.
 
 ### Parts
 
@@ -153,17 +172,16 @@ In order to achieve wiring between parts, you may need the following tools/parts
 > <img height="192" alt="print plate" src="https://user-images.githubusercontent.com/941891/99191792-51133b00-276f-11eb-9765-e226e3d1bb20.png"> <img height="192" alt="module cad front" src="https://user-images.githubusercontent.com/941891/99189834-9fbad800-2763-11eb-9791-2a64bb1d46d2.png"> <img height="192" alt="module cad back" src="https://user-images.githubusercontent.com/941891/99189832-9df11480-2763-11eb-82bb-96ae700c2daf.png">
 
 The enclosure contains 3 clippable parts so that it is easier and faster to print on a 3D printer. 
-The Raspberry Pi Zero (fixed with the RPICT module with Brass Standoffs) and the oled screen are both clipped inside the enclosure. 
 Assembly only needs a bit of epoxy to hold the push button in place. Don't forget to place the 3D-printed button before glueing the push button!
 The enclosure was designed using [Autodesk Fusion 360](https://www.autodesk.com/products/fusion-360).
 
 You can find `emonitor-part*.stl` STL files in the project's [`enclosure`](https://github.com/ncolomer/energy-monitor/tree/master/enclosure) directory.
 
-I printed mine in 6 hours using [PrusaSlicer](https://www.prusa3d.com/prusaslicer/) as slicer and the following parameters:
+I printed mine in 6 hours, using [PrusaSlicer](https://www.prusa3d.com/prusaslicer/) as slicer and the following parameters:
 - 0.20mm SPEED profile
 - 20% infill
 - support on build plate only
-- white 1.75 PLA filament
+- white 1.75mm PLA filament
 
 Notes:
 - don't forget to print the button in your favorite color, see `button.stl` STL file
