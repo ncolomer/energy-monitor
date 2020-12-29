@@ -4,7 +4,7 @@
 
 > “You can't improve what you don't measure”
 
-This project is a DIY module + a Python application that aim at measuring electrical consumption metrics, display collected values on an OLED display, and send them to an external InfluxDB database for historization. 
+This project is a DIY module + a Python application that aims at measuring electrical consumption metrics, display collected values on an OLED display, and send them to an external InfluxDB database for historization. 
 
 The module was designed to fit any standard electrical panel (same form factor as a circuit breaker) and has 90mm width.
 It does not collect data directly but rather fetches metrics from [Lechacal](http://lechacal.com/)'s [RPICT](http://lechacal.com/wiki/index.php?title=Raspberrypi_Current_and_Temperature_Sensor_Adaptor) module and Enedis [Linky](https://fr.wikipedia.org/wiki/Linky) electric meter (France national power provider).
