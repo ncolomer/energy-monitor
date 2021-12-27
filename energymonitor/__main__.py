@@ -24,8 +24,13 @@ try:
 except Exception as exc:
     logger.warning('Could not start RPICT driver', exc_info=exc)
 
+try:
+    datalogger = DataLogger()
+except Exception as exc:
+    logger.warning('Could not start data logger', exc_info=exc)
+
+
 interface = Interface()
-datalogger = DataLogger()
 
 
 def shutdown(signum, stack):

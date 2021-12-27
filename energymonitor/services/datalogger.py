@@ -21,13 +21,10 @@ class DataLogger:
     def __init__(self) -> None:
         self.logger = logging.getLogger(self.__class__.__name__)
         self.influx = InfluxDBClient(host=INFLUX_DB_HOST, port=INFLUX_DB_PORT, database=INFLUX_DB_DATABASE)
-        if self.influx.ping():
-            pubsub.subscribe(self.__class__.__name__, self.handle_message)
-            pubsub.publish(Ready())
-            self.logger.debug('Initialized')
-        else:
-            self.logger.warning('Could not connect InfluxDB')
-
+        self.influx.ping()
+        pubsub.subscribe(self.__class__.__name__, self.handle_message)
+        pubsub.publish(Ready())
+        self.logger.debug('Initialized')
 
     def handle_message(self, message):
         if type(message) == rpict.Measurements:
