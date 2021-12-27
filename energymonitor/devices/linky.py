@@ -11,6 +11,11 @@ from energymonitor.services.dispatcher import pubsub
 
 
 @dataclass
+class Ready:
+    pass
+
+
+@dataclass
 class Measurements:
     ADCO: str  # electric meter address
     PTEC: str  # current tariff period
@@ -36,6 +41,7 @@ class Linky(Thread):
         super().__init__(name=self.__class__.__name__)
         self.logger = logging.getLogger(self.__class__.__name__)
         self.serial = Serial(port=LINKY_SERIAL_PORT, baudrate=1200, bytesize=7, parity=PARITY_EVEN)
+        pubsub.publish(Ready())
         self.logger.debug('Initialized')
 
     def run(self):

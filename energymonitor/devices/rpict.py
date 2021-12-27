@@ -10,6 +10,11 @@ from energymonitor.services.dispatcher import pubsub
 
 
 @dataclass
+class Ready:
+    pass
+
+
+@dataclass
 class Measurements:
     node_id: int
     l1_real_power: float
@@ -41,6 +46,7 @@ class RPICT(Thread):
         super().__init__(name=self.__class__.__name__)
         self.logger = logging.getLogger(self.__class__.__name__)
         self.serial = Serial(port=RPICT_SERIAL_PORT, baudrate=38400)
+        pubsub.publish(Ready())
         self.logger.debug('Initialized')
 
     def run(self):

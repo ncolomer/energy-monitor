@@ -1,11 +1,11 @@
 from statistics import mean
 
-from PIL import Image, ImageChops, ImageDraw
+from PIL import ImageChops
 
 from energymonitor import VERSION
 from energymonitor.config import HMI_MAX_LINE_POWER_WATTS as MAX_POWER
 from energymonitor.devices import rpict, linky
-from energymonitor.helpers.imaging import LOGO, FONT, clear, add_text, add_bar
+from energymonitor.helpers.imaging import *
 
 
 class Page:
@@ -21,12 +21,20 @@ class LandingPage(Page):
 
     def __init__(self, size: (int, int)) -> None:
         super().__init__(size)
+        self.statuses = {'rpict': False, 'linky': False, 'influxdb': False}
         self.im.paste(LOGO)
         self.im = ImageChops.offset(self.im, xoffset=0, yoffset=-6)
         version = f'v{VERSION}'
         (font_width, font_height) = FONT.getsize(version)
         ImageDraw.Draw(self.im).text(xy=((LOGO.size[0] - font_width) // 2, LOGO.size[1] - font_height - 2),
                                      text=version, font=FONT, fill=255)
+        self.refresh()
+
+    def refresh(self, **kwargs):
+        self.statuses = {**self.statuses, **kwargs}
+        self.im.paste(PLUG if self.statuses['rpict'] else PLUG_INVERTED, box=(0, 0))
+        self.im.paste(LIGHTNING if self.statuses['linky'] else LIGHTNING_INVERTED, box=(10, 0))
+        self.im.paste(WIFI if self.statuses.get['influxdb'] else WIFI_INVERTED, box=(19, 0))
 
 
 class RPICTPage(Page):
