@@ -1,0 +1,3 @@
+energymonitor opt/energy-monitor
+debian/energy-monitor.service lib/systemd/system
+scripts/energy-monitor usr/bin

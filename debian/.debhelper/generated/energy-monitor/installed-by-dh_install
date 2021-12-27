@@ -1,0 +1,3 @@
+./energymonitor
+./debian/energy-monitor.service
+./scripts/energy-monitor

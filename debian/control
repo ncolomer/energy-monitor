@@ -1,0 +1,18 @@
+Source: energy-monitor
+Section: python
+Priority: extra
+Maintainer: Nicolas Colomer <>
+Build-Depends: debhelper (>= 10),
+               dh-systemd,
+               dh-virtualenv842
+Homepage: https://github.com/ncolomer/energy-monitor
+
+Package: energy-monitor
+Architecture: all
+Depends: ${misc:Depends},
+         python3 (>= 3.7),
+         libopenjp2-7,
+         libtiff5
+Description: energy-monitor
+ A program to display electrical consumption metrics, display collected values on an OLED display, and send them to an
+ external InfluxDB database for historization.

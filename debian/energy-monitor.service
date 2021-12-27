@@ -1,0 +1,15 @@
+[Unit]
+Description=energy-monitor service
+After=syslog.target network.target
+
+[Service]
+Type=simple
+Restart=always
+User=energy-monitor
+WorkingDirectory=/opt/energy-monitor
+ExecStart=/usr/bin/energy-monitor
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
+

@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+
+export DH_VIRTUALENV_INSTALL_ROOT=/opt/energy-monitor
+
+%:
+	dh $@ --with python-virtualenv --with systemd
+
+override_dh_virtualenv:
+	dh_virtualenv --python python3
+
+override_dh_gencontrol:
+	dh_gencontrol -- -v$(VERSION)

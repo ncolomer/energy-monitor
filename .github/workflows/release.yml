@@ -20,9 +20,8 @@ jobs:
           pip install setuptools wheel
       - name: Set version
         run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-      - name: Build wheel
-        run: |
-          python setup.py sdist bdist_wheel
+      - name: Build deb
+        run: dpkg-buildpackage -us -uc -b
       - name: Create release
         id: create_release
         uses: actions/create-release@v1

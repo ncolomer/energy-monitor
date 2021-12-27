@@ -1,0 +1,5 @@
+energy-monitor (0.1.0-0) buster; urgency=low
+
+  * Initial public release
+
+ -- Nicolas Colomer <>  Sat, 16 Mar 2019 14:00:31 +0000

@@ -15,6 +15,8 @@ class DataLogger:
     def __init__(self) -> None:
         self.logger = logging.getLogger(self.__class__.__name__)
         self.influx = InfluxDBClient(host=INFLUX_DB_HOST, port=INFLUX_DB_PORT, database=INFLUX_DB_DATABASE)
+        influxdb_version = self.influx.ping()  # checking connectivity
+        self.logger.debug('Connected to InfluxDB %s', influxdb_version)
         pubsub.subscribe(self.__class__.__name__, self.handle_message)
         self.logger.debug('Initialized')
 
