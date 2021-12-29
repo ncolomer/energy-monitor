@@ -64,7 +64,8 @@ This screen displays instantaneous metrics collected from Linky:
 ### Installation
 
 To run the energy-monitor application on a Raspberry Pi:
-- install a fresh [Raspberry Pi OS](https://www.raspberrypi.org/software/operating-systems/) on a SD card
+- install a fresh [Raspberry Pi OS](https://www.raspberrypi.org/software/operating-systems/) on a SD card.
+  You need latest Python 3.7 image available [Buster 2021-12-03](https://downloads.raspberrypi.org/raspios_oldstable_armhf/images/raspios_oldstable_armhf-2021-12-02/2021-12-02-raspios-buster-armhf.zip), (see [versions](https://en.wikipedia.org/wiki/Raspberry_Pi_OS))
 - insert the SD card in any Raspberry you own and open a terminal (desktop or ssh)
 - configure the system to enable SPI and UART via the [`raspi-config`](https://www.raspberrypi.org/documentation/configuration/raspi-config.md) helper
 - intall `libopenjp2-7` and `libtiff5` packages using command `apt-get install -y libopenjp2-7 libtiff5`
