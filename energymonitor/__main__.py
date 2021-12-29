@@ -12,6 +12,8 @@ from energymonitor.services.interface import Interface
 logging.basicConfig(stream=sys.stdout, level=LOG_LEVEL, format='%(name)s - %(levelname)s: %(message)s')
 logger = logging.getLogger('Main')
 
+interface = Interface()
+
 try:
     rpict = RPICT()
     rpict.start()
@@ -28,9 +30,6 @@ try:
     datalogger = DataLogger()
 except Exception as exc:
     logger.warning('Could not start data logger', exc_info=exc)
-
-
-interface = Interface()
 
 
 def shutdown(signum, stack):
