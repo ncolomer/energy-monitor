@@ -5,7 +5,14 @@ from pkg_resources import resource_stream
 from energymonitor.helpers.maths import clamp
 
 FONT = ImageFont.truetype(resource_stream(__name__, 'data/ProggyTiny.ttf'), size=15)
+
 LOGO = Image.open(resource_stream(__name__, 'data/logo.xbm'))
+INFLUX_KO = Image.open(resource_stream(__name__, 'data/wifi.xbm'))
+INFLUX_OK = Image.open(resource_stream(__name__, 'data/wifi_inverted.xbm'))
+RPICT_KO = Image.open(resource_stream(__name__, 'data/plug.xbm'))
+RPICT_OK = Image.open(resource_stream(__name__, 'data/plug_inverted.xbm'))
+LINKY_KO = Image.open(resource_stream(__name__, 'data/lightning.xbm'))
+LINKY_OK = Image.open(resource_stream(__name__, 'data/lightning_inverted.xbm'))
 
 
 def clear(image: Image):

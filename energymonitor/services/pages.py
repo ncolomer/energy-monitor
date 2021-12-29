@@ -1,11 +1,11 @@
 from statistics import mean
 
-from PIL import Image, ImageChops, ImageDraw
+from PIL import ImageChops
 
 from energymonitor import VERSION
 from energymonitor.config import HMI_MAX_LINE_POWER_WATTS as MAX_POWER
 from energymonitor.devices import rpict, linky
-from energymonitor.helpers.imaging import LOGO, FONT, clear, add_text, add_bar
+from energymonitor.helpers.imaging import *
 
 
 class Page:
@@ -21,21 +21,29 @@ class LandingPage(Page):
 
     def __init__(self, size: (int, int)) -> None:
         super().__init__(size)
+        self.statuses = {'rpict': False, 'linky': False, 'influxdb': False}
         self.im.paste(LOGO)
         self.im = ImageChops.offset(self.im, xoffset=0, yoffset=-6)
         version = f'v{VERSION}'
         (font_width, font_height) = FONT.getsize(version)
-        ImageDraw.Draw(self.im).text(xy=((LOGO.size[0] - font_width) // 2, LOGO.size[1] - font_height - 2),
+        ImageDraw.Draw(self.im).text(xy=(52, LOGO.size[1] - font_height - 2),
                                      text=version, font=FONT, fill=255)
+        self.refresh()
+
+    def refresh(self, **kwargs):
+        self.statuses = {**self.statuses, **kwargs}
+        self.im.paste(RPICT_OK if self.statuses['rpict'] else RPICT_KO, box=(20 + 0, 23))
+        self.im.paste(LINKY_OK if self.statuses['linky'] else LINKY_KO, box=(20 + 10, 23))
+        self.im.paste(INFLUX_OK if self.statuses['influxdb'] else INFLUX_KO, box=(20 + 20, 23))
 
 
 class RPICTPage(Page):
 
     def __init__(self, size: (int, int)) -> None:
         super().__init__(size)
-        self.max_l1_apparent_power = 0
-        self.max_l2_apparent_power = 0
-        self.max_l3_apparent_power = 0
+        self.max_l1_apparent_power = 0.0
+        self.max_l2_apparent_power = 0.0
+        self.max_l3_apparent_power = 0.0
 
     def refresh(self, m: rpict.Measurements):
         # refresh state

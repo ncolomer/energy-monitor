@@ -1,0 +1,4 @@
+#define plug_inverted_width  8
+#define plug_inverted_height 8
+static unsigned char plug_inverted_bits[] = {
+ 0xff,0xe7,0xc3,0xc3,0x81,0xdb,0xdb,0xff};

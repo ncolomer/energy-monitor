@@ -37,10 +37,18 @@ The user interface is composed of several pages that can by cycled using the pus
 
 #### Startup screen
 
-> <img height="96" alt="landing screen" src="https://user-images.githubusercontent.com/941891/99180029-04097780-2723-11eb-8937-fbdda2956b72.png">
+> <img height="96" alt="landing screen" src="https://user-images.githubusercontent.com/941891/147662298-a034f428-4370-4d33-8fc0-b63eef941928.png">
 
-This screen displays the project logo and the current application version.
+This screen displays the project logo, connection statuses and the current application version.
 It is shown at application startup and also belongs to the page carousel (last position).
+
+Connection statuses are:
+- <img height="16" alt="RPICT" src="https://user-images.githubusercontent.com/941891/147661966-e53ac02a-9856-4179-8a61-28c6abbc21b7.png">
+  RPICT status, white square means connected.
+- <img height="16" alt="Linky" src="https://user-images.githubusercontent.com/941891/147662128-ec6107df-cc06-4576-aa8f-3746874ef76e.png">
+  Linky status, white square means connected.
+- <img height="16" alt="InfluxDB" src="https://user-images.githubusercontent.com/941891/147662201-dce46e58-cf2b-474e-b7a1-f6374338cd35.png">
+  InfluxDB status, white square means connected.
 
 #### Instantaneous metrics screen (RPICT)
 
@@ -64,7 +72,8 @@ This screen displays instantaneous metrics collected from Linky:
 ### Installation
 
 To run the energy-monitor application on a Raspberry Pi:
-- install a fresh [Raspberry Pi OS](https://www.raspberrypi.org/software/operating-systems/) on a SD card
+- install a fresh [Raspberry Pi OS](https://www.raspberrypi.org/software/operating-systems/) on a SD card.
+  You need latest Python 3.7 image available [Buster 2021-12-03](https://downloads.raspberrypi.org/raspios_oldstable_armhf/images/raspios_oldstable_armhf-2021-12-02/2021-12-02-raspios-buster-armhf.zip), (see [versions](https://en.wikipedia.org/wiki/Raspberry_Pi_OS))
 - insert the SD card in any Raspberry you own and open a terminal (desktop or ssh)
 - configure the system to enable SPI and UART via the [`raspi-config`](https://www.raspberrypi.org/documentation/configuration/raspi-config.md) helper
 - intall `libopenjp2-7` and `libtiff5` packages using command `apt-get install -y libopenjp2-7 libtiff5`

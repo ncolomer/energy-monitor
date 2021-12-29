@@ -1,10 +1,16 @@
 import logging
+from dataclasses import dataclass
 
 from influxdb import InfluxDBClient
 
 from energymonitor.config import INFLUX_DB_HOST, INFLUX_DB_PORT, INFLUX_DB_DATABASE, INFLUX_DB_PREFIX
 from energymonitor.devices import linky, rpict
 from energymonitor.services.dispatcher import pubsub
+
+
+@dataclass
+class Ready:
+    pass
 
 
 class DataLogger:
@@ -15,7 +21,9 @@ class DataLogger:
     def __init__(self) -> None:
         self.logger = logging.getLogger(self.__class__.__name__)
         self.influx = InfluxDBClient(host=INFLUX_DB_HOST, port=INFLUX_DB_PORT, database=INFLUX_DB_DATABASE)
+        self.influx.ping()
         pubsub.subscribe(self.__class__.__name__, self.handle_message)
+        pubsub.publish(Ready())
         self.logger.debug('Initialized')
 
     def handle_message(self, message):

@@ -6,6 +6,7 @@ from energymonitor.devices.button import Button
 from energymonitor.devices.display import Display
 from energymonitor.services.dispatcher import pubsub
 from energymonitor.services.pages import LandingPage, RPICTPage, LinkyPage
+from energymonitor.services import datalogger
 
 
 class Interface:
@@ -30,10 +31,19 @@ class Interface:
         self.logger.debug('Initialized')
 
     def handle_message(self, message):
-        if type(message) == rpict.Measurements:
+        if type(message) == rpict.Ready:
+            self.landing_page.refresh(rpict=True)
+            self.refresh_display(page=self.landing_page)
+        elif type(message) == linky.Ready:
+            self.landing_page.refresh(linky=True)
+            self.refresh_display(page=self.landing_page)
+        elif type(message) == datalogger.Ready:
+            self.landing_page.refresh(influxdb=True)
+            self.refresh_display(page=self.landing_page)
+        elif type(message) == rpict.Measurements:
             self.rpict_page.refresh(message)
             self.refresh_display(page=self.rpict_page)
-        if type(message) == linky.Measurements:
+        elif type(message) == linky.Measurements:
             self.linky_page.refresh(message)
             self.refresh_display(page=self.linky_page)
         elif type(message) == button.WakeupEvent:
