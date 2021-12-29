@@ -37,10 +37,18 @@ The user interface is composed of several pages that can by cycled using the pus
 
 #### Startup screen
 
-> <img height="96" alt="landing screen" src="https://user-images.githubusercontent.com/941891/99180029-04097780-2723-11eb-8937-fbdda2956b72.png">
+> <img height="96" alt="landing screen" src="https://user-images.githubusercontent.com/941891/147662298-a034f428-4370-4d33-8fc0-b63eef941928.png">
 
-This screen displays the project logo and the current application version.
+This screen displays the project logo, connection statuses and the current application version.
 It is shown at application startup and also belongs to the page carousel (last position).
+
+Connection statuses are:
+- <img height="16" alt="RPICT" src="https://user-images.githubusercontent.com/941891/147661966-e53ac02a-9856-4179-8a61-28c6abbc21b7.png">
+  RPICT status, white square means connected.
+- <img height="16" alt="Linky" src="https://user-images.githubusercontent.com/941891/147662128-ec6107df-cc06-4576-aa8f-3746874ef76e.png">
+  Linky status, white square means connected.
+- <img height="16" alt="InfluxDB" src="https://user-images.githubusercontent.com/941891/147662201-dce46e58-cf2b-474e-b7a1-f6374338cd35.png">
+  InfluxDB status, white square means connected.
 
 #### Instantaneous metrics screen (RPICT)
 
