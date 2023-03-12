@@ -1,0 +1,14 @@
+log_level: INFO
+hmi:
+  sleep_timeout_secs: 30
+  max_line_power_watts: 6900.0 # 230V * 30A
+  button_debounce_ms: 100
+  button_bcm_pin: 27 # GPIO27 pin 13
+serial:
+  rpict: /dev/ttyAMA0
+  linky: /dev/ttyUSB0
+influxdb:
+  host: localhost
+  port: 8086
+  database: metrology
+  prefix: energy
