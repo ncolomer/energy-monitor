@@ -95,11 +95,11 @@ pub struct Rpict {
 
 impl Rpict {
 
-    pub fn new() -> Self {
+    pub fn builder() -> Self {
         Self {
             port_path :None,
             source_iter: None,
-            dt_gen: Rc::new(|| Utc::now())
+            dt_gen: Rc::new(Utc::now)
         }
     }
 
@@ -118,7 +118,7 @@ impl Rpict {
         self
     }
 
-    pub fn bind(self) -> Result<impl Iterator<Item=RpictFrame>, Box<dyn Error>> {
+    pub fn build(self) -> Result<impl Iterator<Item=RpictFrame>, Box<dyn Error>> {
         let Self { port_path, source_iter, dt_gen } = self;
         let source_iter = source_iter.or_else(|| {
             let port_path = port_path.expect("no port path provided");
@@ -193,10 +193,10 @@ mod tests {
         let now = Utc::now();
         let input = FRAME.chars().chain(vec!['\n']);
         // When
-        let frames = Rpict::new()
+        let frames = Rpict::builder()
             .with_source_iter(input)
             .with_dt_gen(move || now)
-            .bind().unwrap();
+            .build().unwrap();
         // Then
         assert_eq!(frames.collect::<Vec<RpictFrame>>(), vec![frame(now)]);
     }
@@ -208,10 +208,10 @@ mod tests {
         let input = FRAME.chars().chain(vec!['\n']);
         let input_len = FRAME.len() + 1;
         // When
-        let frames = Rpict::new()
+        let frames = Rpict::builder()
             .with_source_iter(input.clone().cycle().take(input_len * 2))
             .with_dt_gen(move || now)
-            .bind().unwrap();
+            .build().unwrap();
         // Then
         assert_eq!(frames.collect::<Vec<RpictFrame>>(), vec![frame(now), frame(now)]);
     }
@@ -222,10 +222,10 @@ mod tests {
         let now = Utc::now();
         let input = FRAME[..10].chars().chain(vec!['\n']);
         // When
-        let frames = Rpict::new()
+        let frames = Rpict::builder()
             .with_source_iter(input)
             .with_dt_gen(move || now)
-            .bind().unwrap();
+            .build().unwrap();
         // Then
         assert_eq!(frames.collect::<Vec<RpictFrame>>(), Vec::new());
     }

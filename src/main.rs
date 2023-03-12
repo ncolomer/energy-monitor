@@ -2,7 +2,6 @@ use std::error::Error;
 use std::path::PathBuf;
 
 use clap::{arg, command, value_parser};
-use tokio;
 use tokio::signal;
 
 use energy_monitor::actor::datalogger::DataLoggerActor;
@@ -20,10 +19,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
     env_logger::Builder::new().parse_filters(&settings.log_level).init();
     log::debug!("{:?}", settings);
 
-    let rpict = RpictActor::new(&settings.serial.rpict);
-    let linky = LinkyActor::new(&settings.serial.linky);
-    let datalogger = DataLoggerActor::new(&settings.influxdb, &rpict, &linky)?;
-    let hmi = HmiActor::new(&settings.hmi, &rpict, &linky, &datalogger)?;
+    let rpict = RpictActor::create(&settings.serial.rpict);
+    let linky = LinkyActor::create(&settings.serial.linky);
+    let datalogger = DataLoggerActor::create(&settings.influxdb, &rpict, &linky)?;
+    let hmi = HmiActor::create(&settings.hmi, &rpict, &linky, &datalogger)?;
 
     let _ = signal::ctrl_c().await;
     hmi.shutdown().await;

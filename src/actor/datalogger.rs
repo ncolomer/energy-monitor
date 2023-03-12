@@ -65,7 +65,7 @@ impl DataLoggerActor {
             .body(payload.to_line_data(&self.settings.prefix))
             .send();
         match request.await {
-            Ok(res) if res.status() == 204 => return,
+            Ok(res) if res.status() == 204 => (),
             Ok(res) => log::error!("Unexpected HTTP response: {res:?}"),
             Err(err) if err.is_timeout() => {
                 self.tx.send(Disconnected).unwrap_or_default();
@@ -105,7 +105,7 @@ impl DataLoggerActor {
         }
     }
 
-    pub fn new(
+    pub fn create(
         settings: &settings::InfluxDB,
         rpict: &RpictActorHandle,
         linky: &LinkyActorHandle,
@@ -119,7 +119,7 @@ impl DataLoggerActor {
         let (tx, _) = broadcast::channel(1);
         let mut actor = DataLoggerActor { settings, rpict_rx, linky_rx, client, tx: tx.clone() };
         tokio::task::spawn(async move { actor.run().await });
-        Ok(DataLoggerHandle { tx: tx.clone() })
+        Ok(DataLoggerHandle { tx })
     }
 
 }

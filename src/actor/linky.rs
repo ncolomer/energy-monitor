@@ -22,15 +22,15 @@ pub struct LinkyActorHandle {
 
 impl LinkyActor {
 
-    pub fn new(serial_path: &String) -> LinkyActorHandle {
-        let serial_path = serial_path.clone();
+    pub fn create(serial_path: &str) -> LinkyActorHandle {
+        let serial_path = serial_path.to_owned();
         let (tx, _) = broadcast::channel(5);
         let tx2 = tx.clone();
         tokio::task::spawn_blocking(move || {
-            let iter = Linky::new()
+            let iter = Linky::builder()
                 .with_port_path(serial_path)
-                .bind();
-            if let Err(_) = iter {
+                .build();
+            if iter.is_err() {
                 log::warn!("Cannot connect Linky");
                 tx.send(Disconnected).unwrap_or_default();
                 return;
@@ -38,7 +38,7 @@ impl LinkyActor {
             sleep(Duration::from_secs(1));
             tx.send(Connected).unwrap_or_default();
             for frame in iter.unwrap() {
-                if let Err(_) = tx.send(NewFrame(frame)) { break; }
+                if tx.send(NewFrame(frame)).is_err() { break; }
             }
         });
         LinkyActorHandle { tx: tx2 }

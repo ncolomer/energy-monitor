@@ -91,11 +91,11 @@ pub struct Linky {
 
 impl Linky {
 
-    pub fn new() -> Self {
+    pub fn builder() -> Self {
         Self {
             port_path :None,
             source_iter: None,
-            dt_gen: Rc::new(|| Utc::now())
+            dt_gen: Rc::new(Utc::now)
         }
     }
 
@@ -114,12 +114,12 @@ impl Linky {
         self
     }
 
-    pub fn bind(self) -> Result<impl Iterator<Item=LinkyFrame>, Box<dyn Error>> {
+    pub fn build(self) -> Result<impl Iterator<Item=LinkyFrame>, Box<dyn Error>> {
         const STX: char = '\u{02}'; // frame start
         const ETX: char = '\u{03}'; // frame end
         const LF: char = '\u{0A}'; // group start
         const CR: char = '\u{0D}'; // group end
-        const KEYS: [&'static str; 4] = ["ADCO", "PTEC", "HCHC", "HCHP"];
+        const KEYS: [&str; 4] = ["ADCO", "PTEC", "HCHC", "HCHP"];
         let Self { port_path, source_iter, dt_gen } = self;
         let source_iter = source_iter.or_else(|| {
             let port_path = port_path.expect("no port path provided");
@@ -224,10 +224,10 @@ mod tests {
         let now = Utc::now();
         let input = FRAME.chars();
         // When
-        let frames = Linky::new()
+        let frames = Linky::builder()
             .with_source_iter(input)
             .with_dt_gen(move || now)
-            .bind().unwrap();
+            .build().unwrap();
         // Then
         assert_eq!(frames.collect::<Vec<_>>(), vec![frame(now)]);
     }
@@ -238,10 +238,10 @@ mod tests {
         let now = Utc::now();
         let input = FRAME.chars().cycle().take(FRAME.len() * 2);
         // When
-        let frames = Linky::new()
+        let frames = Linky::builder()
             .with_source_iter(input)
             .with_dt_gen(move || now)
-            .bind().unwrap();
+            .build().unwrap();
         // Then
         assert_eq!(frames.collect::<Vec<_>>(), vec![frame(now), frame(now)]);
     }
@@ -252,10 +252,10 @@ mod tests {
         let now = Utc::now();
         let input = FRAME[10..].chars().chain(ADCO.chars());
         // When
-        let frames = Linky::new()
+        let frames = Linky::builder()
             .with_source_iter(input)
             .with_dt_gen(move || now)
-            .bind().unwrap();
+            .build().unwrap();
         // Then
         assert_eq!(frames.collect::<Vec<_>>(), Vec::new());
     }
@@ -266,10 +266,10 @@ mod tests {
         let now = Utc::now();
         let input = FRAME[..10].chars().chain(ADCO.chars());
         // When
-        let frames = Linky::new()
+        let frames = Linky::builder()
             .with_source_iter(input)
             .with_dt_gen(move || now)
-            .bind().unwrap();
+            .build().unwrap();
         // Then
         assert_eq!(frames.collect::<Vec<_>>(), Vec::new());
     }

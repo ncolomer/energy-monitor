@@ -150,7 +150,7 @@ impl HmiActor {
         }
     }
 
-    pub fn new(
+    pub fn create(
         settings: &settings::Hmi,
         rpict: &RpictActorHandle,
         linky: &LinkyActorHandle,
@@ -162,12 +162,12 @@ impl HmiActor {
         let linky_rx = linky.subscribe();
         let datalogger_rx = datalogger.subscribe();
         // child actors
-        let button_rx = ButtonActor::new(
+        let button_rx = ButtonActor::create(
             settings.button_bcm_pin,
             settings.button_debounce_ms,
             settings.sleep_timeout_secs
         )?.subscribe();
-        let display = DisplayActor::new()?;
+        let display = DisplayActor::create()?;
         // pages declaration
         let landing_page = LandingPage::new(env!("CARGO_PKG_VERSION"));
         let rpict_page = RpictPage::new(settings.max_line_power_watts);

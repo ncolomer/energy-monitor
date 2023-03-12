@@ -172,6 +172,7 @@ pub struct LinkyPage {
     ptec: TariffPeriod,
 }
 
+#[allow(clippy::new_without_default)]
 impl LinkyPage {
     pub fn new() -> Self {
         Self {

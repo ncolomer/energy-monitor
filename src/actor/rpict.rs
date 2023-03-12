@@ -22,15 +22,15 @@ pub struct RpictActorHandle {
 
 impl RpictActor {
 
-    pub fn new(serial_path: &String) -> RpictActorHandle {
-        let serial_path = serial_path.clone();
+    pub fn create(serial_path: &str) -> RpictActorHandle {
+        let serial_path = serial_path.to_owned();
         let (tx, _) = broadcast::channel(5);
         let tx2 = tx.clone();
         tokio::task::spawn_blocking(move || {
-            let iter = Rpict::new()
+            let iter = Rpict::builder()
                 .with_port_path(serial_path)
-                .bind();
-            if let Err(_) = iter {
+                .build();
+            if iter.is_err() {
                 log::warn!("Cannot connect Rpict");
                 tx.send(Disconnected).unwrap_or_default();
                 return;
@@ -38,7 +38,7 @@ impl RpictActor {
             sleep(Duration::from_secs(1));
             tx.send(Connected).unwrap_or_default();
             for frame in iter.unwrap() {
-                if let Err(_) = tx.send(NewFrame(frame)) { break; }
+                if tx.send(NewFrame(frame)).is_err() { break; }
             }
         });
         RpictActorHandle { tx: tx2 }

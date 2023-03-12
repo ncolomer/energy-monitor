@@ -49,7 +49,7 @@ impl ButtonActor {
         }
     }
 
-    pub fn new(button_bcm_pin: u8, button_debounce_ms: u64, sleep_timeout_secs: u64) -> Result<ButtonActorHandle, Box<dyn Error>> {
+    pub fn create(button_bcm_pin: u8, button_debounce_ms: u64, sleep_timeout_secs: u64) -> Result<ButtonActorHandle, Box<dyn Error>> {
         // setup pin and callback
         let gpio = Gpio::new()?;
         let mut pin = gpio.get(button_bcm_pin)?.into_input_pullup();

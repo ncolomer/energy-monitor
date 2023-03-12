@@ -33,7 +33,7 @@ pub struct DisplayActorHandle {
 
 impl DisplayActor {
 
-    pub fn new() -> Result<DisplayActorHandle, Box<dyn Error>> {
+    pub fn create() -> Result<DisplayActorHandle, Box<dyn Error>> {
         let (tx, rx) = mpsc::channel(1);
         let driver = Ssd1305::new()?;
         let mut actor = DisplayActor { rx, driver, current_page: Page::Landing };

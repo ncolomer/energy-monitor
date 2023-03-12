@@ -84,7 +84,7 @@ impl Ssd1305 {
     }
 
     pub fn display_off(&mut self) -> Result<(), CommError> {
-        self.command(SET_DISP | 0x00)?;
+        self.command(SET_DISP)?;
         Ok(())
     }
 
