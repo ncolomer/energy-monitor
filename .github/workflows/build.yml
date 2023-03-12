@@ -1,0 +1,42 @@
+name: Build project
+
+on: [push]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: rustup set auto-self-update disable && rustup toolchain install stable --profile minimal
+      - uses: Swatinem/rust-cache@v2
+        with: { shared-key: build-cache }
+      - run: rustup target add arm-unknown-linux-gnueabi && cargo install cross
+      - name: Lint
+        run: cross clippy
+  compile:
+    name: Compile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: rustup set auto-self-update disable && rustup toolchain install stable --profile minimal
+      - uses: Swatinem/rust-cache@v2
+        with: { shared-key: build-cache }
+      - run: rustup target add arm-unknown-linux-gnueabi && cargo install cross
+      - name: Compile
+        run: cross check
+  test:
+    name: Test
+    needs: [compile]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: rustup set auto-self-update disable && rustup toolchain install stable --profile minimal
+      - uses: Swatinem/rust-cache@v2
+        with: { shared-key: build-cache }
+      - run: rustup target add arm-unknown-linux-gnueabi && cargo install cross
+      - name: Test
+        run: cross test
