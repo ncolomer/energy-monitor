@@ -22,9 +22,9 @@ pub enum Page {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct StartupPage {
-    is_rpict_on: bool,
-    is_linky_on: bool,
-    is_influxdb_on: bool,
+    is_rpict_connected: bool,
+    is_linky_connected: bool,
+    is_influxdb_connected: bool,
     version: String
 }
 
@@ -32,23 +32,23 @@ impl StartupPage {
     pub fn new(version: &str) -> Self {
         let version = version.to_string();
         Self {
-            is_rpict_on: false,
-            is_linky_on: false,
-            is_influxdb_on: false,
+            is_rpict_connected: false,
+            is_linky_connected: false,
+            is_influxdb_connected: false,
             version,
         }
     }
 
-    pub fn rpict_status(&mut self, is_running: bool) {
-        self.is_rpict_on = is_running;
+    pub fn rpict_status(&mut self, is_connected: bool) {
+        self.is_rpict_connected = is_connected;
     }
 
-    pub fn linky_status(&mut self, is_running: bool) {
-        self.is_linky_on = is_running;
+    pub fn linky_status(&mut self, is_connected: bool) {
+        self.is_linky_connected = is_connected;
     }
 
-    pub fn influxdb_status(&mut self, is_running: bool) {
-        self.is_influxdb_on = is_running;
+    pub fn influxdb_status(&mut self, is_connected: bool) {
+        self.is_influxdb_connected = is_connected;
     }
 }
 
@@ -75,15 +75,15 @@ impl Drawable for StartupPage {
             Alignment::Center,
         ).draw(target)?;
 
-        let rpict_icon = if self.is_rpict_on { &*RPICT_ON } else { &*RPICT_OFF };
+        let rpict_icon = if self.is_rpict_connected { &*RPICT_ON } else { &*RPICT_OFF };
         Image::new(rpict_icon, Point::new(20, 20))
             .draw(target)?;
 
-        let linky_icon = if self.is_linky_on { &*LINKY_ON } else { &*LINKY_OFF };
+        let linky_icon = if self.is_linky_connected { &*LINKY_ON } else { &*LINKY_OFF };
         Image::new(linky_icon, Point::new(30, 20))
             .draw(target)?;
 
-        let influxdb_icon = if self.is_influxdb_on { &*INFLUXDB_ON } else { &*INFLUXDB_OFF };
+        let influxdb_icon = if self.is_influxdb_connected { &*INFLUXDB_ON } else { &*INFLUXDB_OFF };
         Image::new(influxdb_icon, Point::new(40, 20))
             .draw(target)?;
 
@@ -238,7 +238,7 @@ mod tests {
         // When
         let actual = StartupPage::new("0.0.0");
         // Then
-        assert!(matches!(actual, StartupPage { is_rpict_on: false, is_linky_on: false, is_influxdb_on: false, version }
+        assert!(matches!(actual, StartupPage { is_rpict_connected: false, is_linky_connected: false, is_influxdb_connected: false, version }
             if version == "0.0.0"));
     }
 
@@ -251,7 +251,7 @@ mod tests {
         actual.linky_status(true);
         actual.influxdb_status(true);
         // Then
-        assert!(matches!(actual, StartupPage { is_rpict_on: true, is_linky_on: true, is_influxdb_on: true, .. }));
+        assert!(matches!(actual, StartupPage { is_rpict_connected: true, is_linky_connected: true, is_influxdb_connected: true, .. }));
     }
 
     #[test]
