@@ -15,20 +15,20 @@ use crate::driver::linky::TariffPeriod;
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum Page {
-    Landing,
+    Startup,
     Rpict,
     Linky,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct LandingPage {
+pub struct StartupPage {
     is_rpict_on: bool,
     is_linky_on: bool,
     is_wifi_on: bool,
     version: String
 }
 
-impl LandingPage {
+impl StartupPage {
     pub fn new(version: &str) -> Self {
         let version = version.to_string();
         Self {
@@ -52,7 +52,7 @@ impl LandingPage {
     }
 }
 
-impl Drawable for LandingPage {
+impl Drawable for StartupPage {
     type Color = BinaryColor;
     type Output = ();
 
@@ -234,28 +234,28 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_landingpage_new() {
+    fn test_startup_page_new() {
         // When
-        let actual = LandingPage::new("0.0.0");
+        let actual = StartupPage::new("0.0.0");
         // Then
-        assert!(matches!(actual, LandingPage { is_rpict_on: false, is_linky_on: false, is_wifi_on: false, version }
+        assert!(matches!(actual, StartupPage { is_rpict_on: false, is_linky_on: false, is_wifi_on: false, version }
             if version == "0.0.0"));
     }
 
     #[test]
-    fn test_landingpage_update() {
+    fn test_startup_page_update() {
         // Given
-        let mut actual = LandingPage::new("0.0.0");
+        let mut actual = StartupPage::new("0.0.0");
         // When
         actual.rpict_status(true);
         actual.linky_status(true);
         actual.wifi_status(true);
         // Then
-        assert!(matches!(actual, LandingPage { is_rpict_on: true, is_linky_on: true, is_wifi_on: true, .. }));
+        assert!(matches!(actual, StartupPage { is_rpict_on: true, is_linky_on: true, is_wifi_on: true, .. }));
     }
 
     #[test]
-    fn test_rpictpage_new() {
+    fn test_rpict_page_new() {
         // When
         let actual = RpictPage::new(8000.0);
         // Then
@@ -265,7 +265,7 @@ mod tests {
     }
 
     #[test]
-    fn test_rpictpage_update() {
+    fn test_rpict_page_update() {
         // Given
         let mut actual = RpictPage::new(8000.0);
         // When
@@ -282,7 +282,7 @@ mod tests {
     }
 
     #[test]
-    fn test_linkypage_new() {
+    fn test_linky_page_new() {
         // When
         let actual = LinkyPage::new();
         // Then
@@ -291,7 +291,7 @@ mod tests {
     }
 
     #[test]
-    fn test_linkypage_update() {
+    fn test_linky_page_update() {
         // Given
         let mut actual = LinkyPage::new();
         // When
