@@ -7,14 +7,14 @@ use tokio::sync::oneshot;
 
 use DisplayMessage::*;
 
-use crate::display::pages::{LandingPage, LinkyPage, Page, RpictPage};
+use crate::display::pages::{StartupPage, LinkyPage, Page, RpictPage};
 use crate::driver::ssd1305::Ssd1305;
 
 #[derive(Debug)]
 pub enum DisplayMessage {
     SetDisplayOn,
     SetDisplayOff,
-    DisplayLandingPage { page: LandingPage, replace: bool },
+    DisplayStartupPage { page: StartupPage, replace: bool },
     DisplayRpictPage { page: RpictPage, replace: bool },
     DisplayLinkyPage { page: LinkyPage, replace: bool },
     Shutdown(oneshot::Sender<()>),
@@ -36,7 +36,7 @@ impl DisplayActor {
     pub fn create() -> Result<DisplayActorHandle, Box<dyn Error>> {
         let (tx, rx) = mpsc::channel(1);
         let driver = Ssd1305::new()?;
-        let mut actor = DisplayActor { rx, driver, current_page: Page::Landing };
+        let mut actor = DisplayActor { rx, driver, current_page: Page::Startup };
         tokio::task::spawn_blocking(move || actor.run());
         Ok(DisplayActorHandle { tx })
     }
@@ -53,8 +53,8 @@ impl DisplayActor {
                     log::debug!("Display off");
                     self.driver.display_off().unwrap();
                 },
-                DisplayLandingPage { page, replace } => {
-                    self.update_display(Page::Landing, page, replace);
+                DisplayStartupPage { page, replace } => {
+                    self.update_display(Page::Startup, page, replace);
                 }
                 DisplayRpictPage { page, replace } => {
                     self.update_display(Page::Rpict, page, replace);
@@ -95,8 +95,8 @@ impl DisplayActorHandle {
         self.tx.send(message).await.unwrap_or_default();
     }
 
-    pub async fn display_landing_page(&self, page: &LandingPage, replace: bool) {
-        let message = DisplayLandingPage { page: page.clone(), replace };
+    pub async fn display_startup_page(&self, page: &StartupPage, replace: bool) {
+        let message = DisplayStartupPage { page: page.clone(), replace };
         self.tx.send(message).await.unwrap_or_default();
     }
 

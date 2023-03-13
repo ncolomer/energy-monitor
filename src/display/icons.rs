@@ -46,7 +46,7 @@ lazy_static! {
         0b1111_1111,
     ], 8);
 
-    pub static ref WIFI_OFF: ImageRaw<'static, BinaryColor> = ImageRaw::<BinaryColor>::new(&[
+    pub static ref INFLUXDB_OFF: ImageRaw<'static, BinaryColor> = ImageRaw::<BinaryColor>::new(&[
         0b0000_0000,
         0b0011_1100,
         0b0100_0010,
@@ -57,7 +57,7 @@ lazy_static! {
         0b0000_0000,
     ], 8);
 
-    pub static ref WIFI_ON: ImageRaw<'static, BinaryColor> = ImageRaw::<BinaryColor>::new(&[
+    pub static ref INFLUXDB_ON: ImageRaw<'static, BinaryColor> = ImageRaw::<BinaryColor>::new(&[
         0b1111_1111,
         0b1100_0011,
         0b1011_1101,

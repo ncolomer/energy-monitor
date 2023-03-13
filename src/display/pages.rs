@@ -15,44 +15,44 @@ use crate::driver::linky::TariffPeriod;
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum Page {
-    Landing,
+    Startup,
     Rpict,
     Linky,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct LandingPage {
-    is_rpict_on: bool,
-    is_linky_on: bool,
-    is_wifi_on: bool,
+pub struct StartupPage {
+    is_rpict_connected: bool,
+    is_linky_connected: bool,
+    is_influxdb_connected: bool,
     version: String
 }
 
-impl LandingPage {
+impl StartupPage {
     pub fn new(version: &str) -> Self {
         let version = version.to_string();
         Self {
-            is_rpict_on: false,
-            is_linky_on: false,
-            is_wifi_on: false,
+            is_rpict_connected: false,
+            is_linky_connected: false,
+            is_influxdb_connected: false,
             version,
         }
     }
 
-    pub fn rpict_status(&mut self, is_running: bool) {
-        self.is_rpict_on = is_running;
+    pub fn rpict_status(&mut self, is_connected: bool) {
+        self.is_rpict_connected = is_connected;
     }
 
-    pub fn linky_status(&mut self, is_running: bool) {
-        self.is_linky_on = is_running;
+    pub fn linky_status(&mut self, is_connected: bool) {
+        self.is_linky_connected = is_connected;
     }
 
-    pub fn wifi_status(&mut self, is_running: bool) {
-        self.is_wifi_on = is_running;
+    pub fn influxdb_status(&mut self, is_connected: bool) {
+        self.is_influxdb_connected = is_connected;
     }
 }
 
-impl Drawable for LandingPage {
+impl Drawable for StartupPage {
     type Color = BinaryColor;
     type Output = ();
 
@@ -75,16 +75,16 @@ impl Drawable for LandingPage {
             Alignment::Center,
         ).draw(target)?;
 
-        let rpict_icon = if self.is_rpict_on { &*RPICT_ON } else { &*RPICT_OFF };
+        let rpict_icon = if self.is_rpict_connected { &*RPICT_ON } else { &*RPICT_OFF };
         Image::new(rpict_icon, Point::new(20, 20))
             .draw(target)?;
 
-        let linky_icon = if self.is_linky_on { &*LINKY_ON } else { &*LINKY_OFF };
+        let linky_icon = if self.is_linky_connected { &*LINKY_ON } else { &*LINKY_OFF };
         Image::new(linky_icon, Point::new(30, 20))
             .draw(target)?;
 
-        let wifi_icon = if self.is_wifi_on { &*WIFI_ON } else { &*WIFI_OFF };
-        Image::new(wifi_icon, Point::new(40, 20))
+        let influxdb_icon = if self.is_influxdb_connected { &*INFLUXDB_ON } else { &*INFLUXDB_OFF };
+        Image::new(influxdb_icon, Point::new(40, 20))
             .draw(target)?;
 
         Text::with_alignment(
@@ -234,28 +234,28 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_landingpage_new() {
+    fn test_startup_page_new() {
         // When
-        let actual = LandingPage::new("0.0.0");
+        let actual = StartupPage::new("0.0.0");
         // Then
-        assert!(matches!(actual, LandingPage { is_rpict_on: false, is_linky_on: false, is_wifi_on: false, version }
+        assert!(matches!(actual, StartupPage { is_rpict_connected: false, is_linky_connected: false, is_influxdb_connected: false, version }
             if version == "0.0.0"));
     }
 
     #[test]
-    fn test_landingpage_update() {
+    fn test_startup_page_update() {
         // Given
-        let mut actual = LandingPage::new("0.0.0");
+        let mut actual = StartupPage::new("0.0.0");
         // When
         actual.rpict_status(true);
         actual.linky_status(true);
-        actual.wifi_status(true);
+        actual.influxdb_status(true);
         // Then
-        assert!(matches!(actual, LandingPage { is_rpict_on: true, is_linky_on: true, is_wifi_on: true, .. }));
+        assert!(matches!(actual, StartupPage { is_rpict_connected: true, is_linky_connected: true, is_influxdb_connected: true, .. }));
     }
 
     #[test]
-    fn test_rpictpage_new() {
+    fn test_rpict_page_new() {
         // When
         let actual = RpictPage::new(8000.0);
         // Then
@@ -265,7 +265,7 @@ mod tests {
     }
 
     #[test]
-    fn test_rpictpage_update() {
+    fn test_rpict_page_update() {
         // Given
         let mut actual = RpictPage::new(8000.0);
         // When
@@ -282,7 +282,7 @@ mod tests {
     }
 
     #[test]
-    fn test_linkypage_new() {
+    fn test_linky_page_new() {
         // When
         let actual = LinkyPage::new();
         // Then
@@ -291,7 +291,7 @@ mod tests {
     }
 
     #[test]
-    fn test_linkypage_update() {
+    fn test_linky_page_update() {
         // Given
         let mut actual = LinkyPage::new();
         // When

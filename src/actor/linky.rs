@@ -27,16 +27,17 @@ impl LinkyActor {
         let (tx, _) = broadcast::channel(5);
         let tx2 = tx.clone();
         tokio::task::spawn_blocking(move || {
+            sleep(Duration::from_secs(1));
             let iter = Linky::builder()
                 .with_port_path(serial_path)
                 .build();
-            if iter.is_err() {
-                log::warn!("Cannot connect Linky");
+            if let Err(e) = iter {
+                log::debug!("Cannot connect Linky: {:?}", e);
                 tx.send(Disconnected).unwrap_or_default();
                 return;
+            } else {
+                tx.send(Connected).unwrap_or_default();
             }
-            sleep(Duration::from_secs(1));
-            tx.send(Connected).unwrap_or_default();
             for frame in iter.unwrap() {
                 if tx.send(NewFrame(frame)).is_err() { break; }
             }

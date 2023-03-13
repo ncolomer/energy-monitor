@@ -23,8 +23,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let linky = LinkyActor::create(&settings.serial.linky);
     let datalogger = DataLoggerActor::create(&settings.influxdb, &rpict, &linky)?;
     let hmi = HmiActor::create(&settings.hmi, &rpict, &linky, &datalogger)?;
+    log::info!("energy-monitor started");
 
     let _ = signal::ctrl_c().await;
+    log::info!("energy-monitor stopping");
     hmi.shutdown().await;
     Ok(())
 }

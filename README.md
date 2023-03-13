@@ -15,7 +15,7 @@ I built this project to observe and store my own energy consumption, to eventual
 
 :warning: My electrical installation has three-phase power supply. Even though the project can run on one-phase power supply, it might also need some adaptation. Any contribution welcome!
 
-![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/ncolomer/energy-monitor?label=latest%20release&sort=semver&style=for-the-badge)
+[![GitHub release](https://img.shields.io/github/v/release/ncolomer/energy-monitor?label=latest%20release&sort=semver&style=for-the-badge)](https://github.com/ncolomer/energy-monitor/releases/latest)
 
 **Table of contents**
 
@@ -39,7 +39,7 @@ The user interface is composed of several pages that can be cycled using the pus
 
 #### Startup screen
 
-> <img height="96" alt="landing screen" src="https://user-images.githubusercontent.com/941891/224688501-87548e33-f3ce-47d1-9e3e-d085a6000a66.png">
+> <img height="96" alt="startup screen" src="https://user-images.githubusercontent.com/941891/224688501-87548e33-f3ce-47d1-9e3e-d085a6000a66.png">
 
 This screen displays the project logo, connection statuses and the current application version.
 It is shown at application startup and also belongs to the page carousel (last position).
