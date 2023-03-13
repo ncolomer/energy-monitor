@@ -15,7 +15,7 @@ I built this project to observe and store my own energy consumption, to eventual
 
 :warning: My electrical installation has three-phase power supply. Even though the project can run on one-phase power supply, it might also need some adaptation. Any contribution welcome!
 
-![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/ncolomer/energy-monitor?label=latest%20release&sort=semver&style=for-the-badge)
+[![GitHub release](https://img.shields.io/github/v/release/ncolomer/energy-monitor?label=latest%20release&sort=semver&style=for-the-badge)](https://github.com/ncolomer/energy-monitor/releases/latest)
 
 **Table of contents**
 
