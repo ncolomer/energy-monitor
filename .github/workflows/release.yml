@@ -3,10 +3,6 @@ name: Release project
 on:
   push:
     tags: ['*']
-    branches: [master]
-
-permissions:
-  contents: write
 
 env:
   CARGO_TERM_COLOR: always
@@ -15,6 +11,8 @@ jobs:
   build:
     name: Build release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v3
       - run: rustup set auto-self-update disable && rustup toolchain install stable --profile minimal
@@ -22,7 +20,7 @@ jobs:
         with: { shared-key: build-cache }
       - run: rustup target add arm-unknown-linux-gnueabi && cargo install cross
       - name: Set version
-        run: sed -i '' 's|^version = .*$|version = "{{ github.ref_name }}"|' Cargo.toml
+        run: sed -i 's|^version = .*$|version = "{{ github.ref_name }}"|' Cargo.toml
       - name: Build
         run: cross build --release
       - name: Release
