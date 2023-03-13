@@ -49,8 +49,13 @@ impl HmiActor {
     async fn handle_rpict(&mut self, msg: RpictMessage) {
         match msg {
             RpictMessage::Connected => {
-                log::debug!("Rpict ready");
+                log::info!("Rpict connected");
                 self.landing_page.rpict_status(true);
+                self.display.display_landing_page(&self.landing_page, false).await;
+            },
+            RpictMessage::Disconnected => {
+                log::warn!("Rpict disconnected");
+                self.landing_page.rpict_status(false);
                 self.display.display_landing_page(&self.landing_page, false).await;
             },
             RpictMessage::NewFrame(frame) => {
@@ -65,15 +70,19 @@ impl HmiActor {
                 );
                 self.display.display_rpict_page(&self.rpict_page, false).await;
             },
-            _ => {}
         }
     }
 
     async fn handle_linky(&mut self, msg: LinkyMessage) {
         match msg {
             LinkyMessage::Connected => {
-                log::debug!("Linky ready");
+                log::info!("Linky connected");
                 self.landing_page.linky_status(true);
+                self.display.display_landing_page(&self.landing_page, false).await;
+            },
+            LinkyMessage::Disconnected => {
+                log::warn!("Linky disconnected");
+                self.landing_page.linky_status(false);
                 self.display.display_landing_page(&self.landing_page, false).await;
             },
             LinkyMessage::NewFrame(frame) => {
@@ -86,19 +95,18 @@ impl HmiActor {
                 );
                 self.display.display_linky_page(&self.linky_page, false).await;
             },
-            _ => {}
         }
     }
 
     async fn handle_datalogger(&mut self, msg: DataLoggerMessage) {
         match msg {
             DataLoggerMessage::Connected => {
-                log::debug!("Data logger connected");
+                log::info!("Data logger connected");
                 self.landing_page.wifi_status(true);
                 self.display.display_landing_page(&self.landing_page, false).await;
             },
             DataLoggerMessage::Disconnected => {
-                log::debug!("Data logger disconnected");
+                log::warn!("Data logger disconnected");
                 self.landing_page.wifi_status(false);
                 self.display.display_landing_page(&self.landing_page, false).await;
             }
