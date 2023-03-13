@@ -102,12 +102,12 @@ impl HmiActor {
         match msg {
             DataLoggerMessage::Connected => {
                 log::info!("Data logger connected");
-                self.startup_page.wifi_status(true);
+                self.startup_page.influxdb_status(true);
                 self.display.display_startup_page(&self.startup_page, false).await;
             },
             DataLoggerMessage::Disconnected => {
                 log::warn!("Data logger disconnected");
-                self.startup_page.wifi_status(false);
+                self.startup_page.influxdb_status(false);
                 self.display.display_startup_page(&self.startup_page, false).await;
             }
         }

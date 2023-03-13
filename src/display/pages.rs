@@ -24,7 +24,7 @@ pub enum Page {
 pub struct StartupPage {
     is_rpict_on: bool,
     is_linky_on: bool,
-    is_wifi_on: bool,
+    is_influxdb_on: bool,
     version: String
 }
 
@@ -34,7 +34,7 @@ impl StartupPage {
         Self {
             is_rpict_on: false,
             is_linky_on: false,
-            is_wifi_on: false,
+            is_influxdb_on: false,
             version,
         }
     }
@@ -47,8 +47,8 @@ impl StartupPage {
         self.is_linky_on = is_running;
     }
 
-    pub fn wifi_status(&mut self, is_running: bool) {
-        self.is_wifi_on = is_running;
+    pub fn influxdb_status(&mut self, is_running: bool) {
+        self.is_influxdb_on = is_running;
     }
 }
 
@@ -83,8 +83,8 @@ impl Drawable for StartupPage {
         Image::new(linky_icon, Point::new(30, 20))
             .draw(target)?;
 
-        let wifi_icon = if self.is_wifi_on { &*WIFI_ON } else { &*WIFI_OFF };
-        Image::new(wifi_icon, Point::new(40, 20))
+        let influxdb_icon = if self.is_influxdb_on { &*INFLUXDB_ON } else { &*INFLUXDB_OFF };
+        Image::new(influxdb_icon, Point::new(40, 20))
             .draw(target)?;
 
         Text::with_alignment(
@@ -238,7 +238,7 @@ mod tests {
         // When
         let actual = StartupPage::new("0.0.0");
         // Then
-        assert!(matches!(actual, StartupPage { is_rpict_on: false, is_linky_on: false, is_wifi_on: false, version }
+        assert!(matches!(actual, StartupPage { is_rpict_on: false, is_linky_on: false, is_influxdb_on: false, version }
             if version == "0.0.0"));
     }
 
@@ -249,9 +249,9 @@ mod tests {
         // When
         actual.rpict_status(true);
         actual.linky_status(true);
-        actual.wifi_status(true);
+        actual.influxdb_status(true);
         // Then
-        assert!(matches!(actual, StartupPage { is_rpict_on: true, is_linky_on: true, is_wifi_on: true, .. }));
+        assert!(matches!(actual, StartupPage { is_rpict_on: true, is_linky_on: true, is_influxdb_on: true, .. }));
     }
 
     #[test]
