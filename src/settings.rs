@@ -47,7 +47,7 @@ pub struct Settings {
 
 impl Settings {
     pub fn new(config_file_path: Option<&PathBuf>) -> Result<Self, ConfigError> {
-        const DEFAULTS: &str = include_str!("settings.default.yaml");
+        const DEFAULTS: &str = include_str!("settings.default.yml");
         let mut builder = Config::builder()
             .add_source(File::from_str(DEFAULTS, FileFormat::Yaml));
         if let Some(path) = config_file_path {
