@@ -1,4 +1,0 @@
-#define wifi_inverted_width  8
-#define wifi_inverted_height 8
-static unsigned char wifi_inverted_bits[] = {
- 0xff,0xc3,0xbd,0xe7,0xdb,0xff,0xe7,0xff};

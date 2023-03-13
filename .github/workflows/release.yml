@@ -2,44 +2,33 @@ name: Release project
 
 on:
   push:
-    tags:
-      - '*'
+    tags: [*]
+    branches: [master]
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
-  release:
+  build:
+    name: Build release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.7'
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install setuptools wheel
+      - uses: actions/checkout@v3
+      - run: rustup set auto-self-update disable && rustup toolchain install stable --profile minimal
+      - uses: Swatinem/rust-cache@v2
+        with: { shared-key: build-cache }
+      - run: rustup target add arm-unknown-linux-gnueabi && cargo install cross
       - name: Set version
-        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-      - name: Build wheel
-        run: |
-          python setup.py sdist bdist_wheel
-      - name: Create release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: sed -i '' 's|^version = .*$|version = "{{ github.ref_name }}"|' Cargo.toml
+      - name: Build
+        run: cross build --release
+      - name: Release
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ env.VERSION }}
           draft: false
           prerelease: false
-      - name: Upload wheel
-        id: upload_release_asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/energy_monitor-${{ env.VERSION }}-py3-none-any.whl
-          asset_name: energy_monitor-${{ env.VERSION }}-py3-none-any.whl
-          asset_content_type: application/zip
+          generate_release_notes: true
+          files: target/arm-unknown-linux-gnueabi/release/energy-monitor
