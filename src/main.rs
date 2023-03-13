@@ -13,7 +13,7 @@ use energy_monitor::settings::Settings;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let matches = command!()
-        .arg(arg!(-c --config <FILE> "Sets a custom config file").required(false).value_parser(value_parser!(PathBuf)))
+        .arg(arg!(-c --config <FILE> "Sets a custom YAML config file").required(false).value_parser(value_parser!(PathBuf)))
         .get_matches();
     let settings = Settings::new(matches.get_one::<PathBuf>("config")).expect("Can't load settings");
     env_logger::Builder::new().parse_filters(&settings.log_level).init();
