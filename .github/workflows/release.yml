@@ -2,7 +2,7 @@ name: Release project
 
 on:
   push:
-    tags: [*]
+    tags: ['*']
     branches: [master]
 
 permissions:
