@@ -8,8 +8,8 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-    name: Build release
+  release:
+    name: Release project
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -20,7 +20,7 @@ jobs:
         with: { shared-key: build-cache }
       - run: rustup target add arm-unknown-linux-gnueabi && cargo install cross
       - name: Set version
-        run: sed -i 's|^version = .*$|version = "{{ github.ref_name }}"|' Cargo.toml
+        run: sed -i 's|^version = .*$|version = "${{ github.ref_name }}"|' Cargo.toml
       - name: Build
         run: cross build --release
       - name: Release
