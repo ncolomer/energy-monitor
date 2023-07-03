@@ -25,11 +25,10 @@ pub struct ButtonActor {
 
 #[derive(Clone)]
 pub struct ButtonActorHandle {
-    tx: broadcast::Sender<ButtonMessage>
+    tx: broadcast::Sender<ButtonMessage>,
 }
 
 impl ButtonActor {
-
     fn new_timer(&self, timeout: u64) -> JoinHandle<()> {
         let tx = self.tx.clone();
         tokio::task::spawn(async move {
@@ -44,25 +43,38 @@ impl ButtonActor {
             timer.abort();
             timer = self.new_timer(self.sleep_timeout_secs);
             sleep(Duration::from_millis(self.button_debounce_ms)).await;
-            if self.pin.is_high() { continue; } // signal is debounced after this
+            if self.pin.is_high() {
+                continue;
+            } // signal is debounced after this
             self.tx.send(Press).unwrap_or_default();
         }
     }
 
-    pub fn create(button_bcm_pin: u8, button_debounce_ms: u64, sleep_timeout_secs: u64) -> Result<ButtonActorHandle, Box<dyn Error>> {
+    pub fn create(
+        button_bcm_pin: u8,
+        button_debounce_ms: u64,
+        sleep_timeout_secs: u64,
+    ) -> Result<ButtonActorHandle, Box<dyn Error>> {
         // setup pin and callback
         let gpio = Gpio::new()?;
         let mut pin = gpio.get(button_bcm_pin)?.into_input_pullup();
         let (pin_tx, pin_rx) = mpsc::channel(1);
-        pin.set_async_interrupt(Trigger::FallingEdge, move |level| pin_tx.blocking_send(level).unwrap_or_default())?;
+        pin.set_async_interrupt(Trigger::FallingEdge, move |level| {
+            pin_tx.blocking_send(level).unwrap_or_default()
+        })?;
         // listen to pin state changes
         let (tx, _) = broadcast::channel(1);
         let tx2 = tx.clone();
-        let mut actor = ButtonActor { button_debounce_ms, sleep_timeout_secs,  pin, pin_rx, tx };
+        let mut actor = ButtonActor {
+            button_debounce_ms,
+            sleep_timeout_secs,
+            pin,
+            pin_rx,
+            tx,
+        };
         tokio::task::spawn(async move { actor.run().await });
         Ok(ButtonActorHandle { tx: tx2 })
     }
-
 }
 
 impl ButtonActorHandle {

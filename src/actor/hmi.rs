@@ -13,7 +13,7 @@ use crate::actor::datalogger::{DataLoggerHandle, DataLoggerMessage};
 use crate::actor::display::{DisplayActor, DisplayActorHandle};
 use crate::actor::linky::{LinkyActorHandle, LinkyMessage};
 use crate::actor::rpict::{RpictActorHandle, RpictMessage};
-use crate::display::pages::{StartupPage, LinkyPage, Page, RpictPage};
+use crate::display::pages::{LinkyPage, Page, RpictPage, StartupPage};
 use crate::settings;
 
 type Carrousel = Skip<Cycle<IntoIter<Page>>>;
@@ -41,23 +41,22 @@ pub struct HmiActor {
 
 #[derive(Clone)]
 pub struct HmiActorHandle {
-    tx: mpsc::Sender<HmiMessage>
+    tx: mpsc::Sender<HmiMessage>,
 }
 
 impl HmiActor {
-
     async fn handle_rpict(&mut self, msg: RpictMessage) {
         match msg {
             RpictMessage::Connected => {
                 log::info!("Rpict connected");
                 self.startup_page.rpict_status(true);
                 self.display.display_startup_page(&self.startup_page, false).await;
-            },
+            }
             RpictMessage::Disconnected => {
                 log::warn!("Rpict disconnected");
                 self.startup_page.rpict_status(false);
                 self.display.display_startup_page(&self.startup_page, false).await;
-            },
+            }
             RpictMessage::NewFrame(frame) => {
                 log::trace!("New Rpict frame: {:?}", frame);
                 self.rpict_page.update(
@@ -66,10 +65,10 @@ impl HmiActor {
                     frame.l3_apparent_power,
                     frame.l1_vrms,
                     frame.l2_vrms,
-                    frame.l3_vrms
+                    frame.l3_vrms,
                 );
                 self.display.display_rpict_page(&self.rpict_page, false).await;
-            },
+            }
         }
     }
 
@@ -79,22 +78,18 @@ impl HmiActor {
                 log::info!("Linky connected");
                 self.startup_page.linky_status(true);
                 self.display.display_startup_page(&self.startup_page, false).await;
-            },
+            }
             LinkyMessage::Disconnected => {
                 log::warn!("Linky disconnected");
                 self.startup_page.linky_status(false);
                 self.display.display_startup_page(&self.startup_page, false).await;
-            },
+            }
             LinkyMessage::NewFrame(frame) => {
                 log::trace!("New Linky frame: {:?}", frame);
-                self.linky_page.update(
-                    frame.adco.clone(),
-                    frame.hchp,
-                    frame.hchc,
-                    frame.ptec()
-                );
+                self.linky_page
+                    .update(frame.adco.clone(), frame.hchp, frame.hchc, frame.ptec());
                 self.display.display_linky_page(&self.linky_page, false).await;
-            },
+            }
         }
     }
 
@@ -104,7 +99,7 @@ impl HmiActor {
                 log::info!("Data logger connected");
                 self.startup_page.influxdb_status(true);
                 self.display.display_startup_page(&self.startup_page, false).await;
-            },
+            }
             DataLoggerMessage::Disconnected => {
                 log::warn!("Data logger disconnected");
                 self.startup_page.influxdb_status(false);
@@ -127,12 +122,12 @@ impl HmiActor {
                     self.is_display_active = true;
                     self.display.set_display_on().await;
                 }
-            },
+            }
             ButtonMessage::Inactivity => {
                 log::debug!("Button inactivity");
                 self.is_display_active = false;
                 self.display.set_display_off().await;
-            },
+            }
         }
     }
 
@@ -163,8 +158,7 @@ impl HmiActor {
         rpict: &RpictActorHandle,
         linky: &LinkyActorHandle,
         datalogger: &DataLoggerHandle,
-    ) -> Result<HmiActorHandle, Box<dyn Error>>
-    {
+    ) -> Result<HmiActorHandle, Box<dyn Error>> {
         let settings = settings.clone();
         let rpict_rx = rpict.subscribe();
         let linky_rx = linky.subscribe();
@@ -173,24 +167,36 @@ impl HmiActor {
         let button_rx = ButtonActor::create(
             settings.button_bcm_pin,
             settings.button_debounce_ms,
-            settings.sleep_timeout_secs
-        )?.subscribe();
+            settings.sleep_timeout_secs,
+        )?
+        .subscribe();
         let display = DisplayActor::create()?;
         // pages declaration
         let startup_page = StartupPage::new(env!("CARGO_PKG_VERSION"));
         let rpict_page = RpictPage::new(settings.max_line_power_watts);
         let linky_page = LinkyPage::new();
-        let carousel: Carrousel = vec![Page::Startup, Page::Rpict, Page::Linky].into_iter().cycle().skip(1);
+        let carousel: Carrousel = vec![Page::Startup, Page::Rpict, Page::Linky]
+            .into_iter()
+            .cycle()
+            .skip(1);
         // fork
         let (tx, rx) = mpsc::channel(1);
         let mut actor = HmiActor {
-            rpict_rx, linky_rx, button_rx, datalogger_rx, rx, display,
-            startup_page, rpict_page, linky_page, carousel, is_display_active: true,
+            rpict_rx,
+            linky_rx,
+            button_rx,
+            datalogger_rx,
+            rx,
+            display,
+            startup_page,
+            rpict_page,
+            linky_page,
+            carousel,
+            is_display_active: true,
         };
         tokio::task::spawn(async move { actor.run().await });
         Ok(HmiActorHandle { tx })
     }
-
 }
 
 impl HmiActorHandle {

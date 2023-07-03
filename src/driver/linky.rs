@@ -14,18 +14,19 @@ use crate::driver::error::ParseError;
 pub struct LinkyFrame {
     pub adco: String, // electric meter address
     pub ptec: String, // current tariff period
-    pub hchc: u32, // heures creuses index, in watts
-    pub hchp: u32, // heures pleines index, in watts
+    pub hchc: u32,    // heures creuses index, in watts
+    pub hchp: u32,    // heures pleines index, in watts
     pub timestamp: DateTime<Utc>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum TariffPeriod {
-    HC, HP, Unknown
+    HC,
+    HP,
+    Unknown,
 }
 
 impl LinkyFrame {
-
     fn parse(map: &HashMap<String, String>, dt_gen: &dyn Fn() -> DateTime<Utc>) -> Result<Self, ParseError> {
         fn extract<T: FromStr>(option: Option<&String>) -> Result<T, ParseError> {
             option.ok_or(ParseError)?.parse().or(Err(ParseError))
@@ -47,12 +48,11 @@ impl LinkyFrame {
             _ => TariffPeriod::Unknown,
         }
     }
-
 }
 
 struct LinkyIterator {
     uart: Uart,
-    buffer: [u8; 1]
+    buffer: [u8; 1],
 }
 
 impl Iterator for LinkyIterator {
@@ -61,13 +61,11 @@ impl Iterator for LinkyIterator {
     fn next(&mut self) -> Option<Self::Item> {
         loop {
             match self.uart.read(&mut self.buffer) {
-                Ok(size) if size > 0 =>
-                    return Some(self.buffer[0].into()),
-                Ok(_size) =>
-                    continue,
+                Ok(size) if size > 0 => return Some(self.buffer[0].into()),
+                Ok(_size) => continue,
                 Err(_) => {
                     log::error!("error while reading bytestream");
-                    return None
+                    return None;
                 }
             }
         }
@@ -83,19 +81,18 @@ enum Frame {
 
 pub struct Linky {
     port_path: Option<String>,
-    source_iter: Option<Box<dyn Iterator<Item=char>>>,
+    source_iter: Option<Box<dyn Iterator<Item = char>>>,
     // Using Rc because Box is not easily Copy-able
     // See https://users.rust-lang.org/t/how-to-clone-a-boxed-closure/31035
-    dt_gen: Rc<dyn Fn() -> DateTime<Utc>>
+    dt_gen: Rc<dyn Fn() -> DateTime<Utc>>,
 }
 
 impl Linky {
-
     pub fn builder() -> Self {
         Self {
-            port_path :None,
+            port_path: None,
             source_iter: None,
-            dt_gen: Rc::new(Utc::now)
+            dt_gen: Rc::new(Utc::now),
         }
     }
 
@@ -104,80 +101,84 @@ impl Linky {
         self
     }
 
-    pub fn with_source_iter(mut self, source_iter: impl Iterator<Item=char> + 'static) -> Self {
+    pub fn with_source_iter(mut self, source_iter: impl Iterator<Item = char> + 'static) -> Self {
         self.source_iter = Some(Box::new(source_iter));
         self
     }
 
-    pub fn with_dt_gen(mut self, dt_gen: impl Fn() -> DateTime<Utc> + 'static) -> Self{
+    pub fn with_dt_gen(mut self, dt_gen: impl Fn() -> DateTime<Utc> + 'static) -> Self {
         self.dt_gen = Rc::new(dt_gen);
         self
     }
 
-    pub fn build(self) -> Result<impl Iterator<Item=LinkyFrame>, Box<dyn Error>> {
+    pub fn build(self) -> Result<impl Iterator<Item = LinkyFrame>, Box<dyn Error>> {
         const STX: char = '\u{02}'; // frame start
         const ETX: char = '\u{03}'; // frame end
         const LF: char = '\u{0A}'; // group start
         const CR: char = '\u{0D}'; // group end
         const KEYS: [&str; 4] = ["ADCO", "PTEC", "HCHC", "HCHP"];
-        let Self { port_path, source_iter, dt_gen } = self;
-        let source_iter = source_iter.or_else(|| {
-            let port_path = port_path.expect("no port path provided");
-            // See https://www.enedis.fr/sites/default/files/Enedis-NOI-CPT_54E.pdf
-            // 5.3.5. Couche physique — Page : 12/38
-            let mut uart = Uart::with_path(
-                Path::new(&port_path),
-                1_200,
-                Parity::Even,
-                7,
-                1
-            ).unwrap();
-            uart.set_read_mode(1, Duration::default()).unwrap();
-            Some(Box::new(LinkyIterator {uart, buffer: [0u8]}))
-        }).expect("no source provided");
+        let Self {
+            port_path,
+            source_iter,
+            dt_gen,
+        } = self;
+        let source_iter = source_iter
+            .or_else(|| {
+                let port_path = port_path.expect("no port path provided");
+                // See https://www.enedis.fr/sites/default/files/Enedis-NOI-CPT_54E.pdf
+                // 5.3.5. Couche physique — Page : 12/38
+                let mut uart = Uart::with_path(Path::new(&port_path), 1_200, Parity::Even, 7, 1).unwrap();
+                uart.set_read_mode(1, Duration::default()).unwrap();
+                Some(Box::new(LinkyIterator { uart, buffer: [0u8] }))
+            })
+            .expect("no source provided");
         // TIC mode Historique (vs. new Standard mode)
         // < LF > (0x0A) | Etiquette | < HT > (0x09) | Donnée | < HT > (0x09) | Checksum | < CR > (0x0D)
         // See https://www.enedis.fr/sites/default/files/Enedis-NOI-CPT_54E.pdf
         // 5.3.6. Couche liaison — Page : 13/38
-        let iter =
-            source_iter
-                //.skip_while(|c| future::ready(c != '\n'))
-                .scan(String::new(), |buffer, c| {
-                    match c {
-                        STX => Some(Some(Frame::Start)),
-                        ETX => Some(Some(Frame::End)),
-                        LF => { buffer.clear(); Some(None) }
-                        CR => { Some(Some(Frame::DataSet(buffer.clone()))) }
-                        other => { buffer.push(other); Some(None) }
+        let iter = source_iter
+            //.skip_while(|c| future::ready(c != '\n'))
+            .scan(String::new(), |buffer, c| match c {
+                STX => Some(Some(Frame::Start)),
+                ETX => Some(Some(Frame::End)),
+                LF => {
+                    buffer.clear();
+                    Some(None)
+                }
+                CR => Some(Some(Frame::DataSet(buffer.clone()))),
+                other => {
+                    buffer.push(other);
+                    Some(None)
+                }
+            })
+            .flatten()
+            .scan(HashMap::<String, String>::new(), |buffer, frame| match frame {
+                Frame::Start => {
+                    buffer.clear();
+                    Some(None)
+                }
+                Frame::End => Some(Some(buffer.clone())),
+                Frame::DataSet(string) => match string.split_ascii_whitespace().collect::<Vec<_>>().as_slice() {
+                    [key, value, ..] if KEYS.contains(key) => {
+                        let (key, value) = (*key, *value);
+                        let value = match key {
+                            "PTEC" => &value[..2],
+                            _ => value,
+                        };
+                        buffer.insert(key.into(), value.into());
+                        Some(None)
                     }
+                    _ => Some(None),
+                },
+            })
+            .flatten()
+            .filter(|map| KEYS.iter().all(|key| map.contains_key(&key.to_string())))
+            .filter_map(move |map| {
+                LinkyFrame::parse(&map, &*dt_gen.clone()).ok().or_else(|| {
+                    log::warn!("couldn't extract LinkyFrame from map: {map:?}");
+                    None
                 })
-                .flatten()
-                .scan(HashMap::<String, String>::new(), |buffer, frame| {
-                    match frame {
-                        Frame::Start => { buffer.clear(); Some(None) },
-                        Frame::End => Some(Some(buffer.clone())),
-                        Frame::DataSet(string) => {
-                            match string.split_ascii_whitespace().collect::<Vec<_>>().as_slice() {
-                                [key, value, ..] if KEYS.contains(key) => {
-                                    let (key, value) = (*key, *value);
-                                    let value = match key {
-                                        "PTEC" => &value[..2],
-                                        _ => value
-                                    };
-                                    buffer.insert(key.into(), value.into());
-                                    Some(None)
-                                },
-                                _ => Some(None)
-                            }
-                        },
-                    }
-                })
-                .flatten()
-                .filter(|map| KEYS.iter().all(|key| map.contains_key(&key.to_string())))
-                .filter_map(move |map| {
-                    LinkyFrame::parse(&map, &*dt_gen.clone()).ok()
-                        .or_else(|| { log::warn!("couldn't extract LinkyFrame from map: {map:?}"); None })
-                });
+            });
 
         Ok(iter)
     }
@@ -214,7 +215,7 @@ mod tests {
             ptec: "HP".to_string(),
             hchc: 19_650_909,
             hchp: 43_280_553,
-            timestamp: now
+            timestamp: now,
         }
     }
 
@@ -227,7 +228,8 @@ mod tests {
         let frames = Linky::builder()
             .with_source_iter(input)
             .with_dt_gen(move || now)
-            .build().unwrap();
+            .build()
+            .unwrap();
         // Then
         assert_eq!(frames.collect::<Vec<_>>(), vec![frame(now)]);
     }
@@ -241,7 +243,8 @@ mod tests {
         let frames = Linky::builder()
             .with_source_iter(input)
             .with_dt_gen(move || now)
-            .build().unwrap();
+            .build()
+            .unwrap();
         // Then
         assert_eq!(frames.collect::<Vec<_>>(), vec![frame(now), frame(now)]);
     }
@@ -255,7 +258,8 @@ mod tests {
         let frames = Linky::builder()
             .with_source_iter(input)
             .with_dt_gen(move || now)
-            .build().unwrap();
+            .build()
+            .unwrap();
         // Then
         assert_eq!(frames.collect::<Vec<_>>(), Vec::new());
     }
@@ -269,7 +273,8 @@ mod tests {
         let frames = Linky::builder()
             .with_source_iter(input)
             .with_dt_gen(move || now)
-            .build().unwrap();
+            .build()
+            .unwrap();
         // Then
         assert_eq!(frames.collect::<Vec<_>>(), Vec::new());
     }
@@ -321,9 +326,29 @@ mod tests {
         // Given
         let frame = frame(Utc::now());
         // When & Then
-        assert_eq!(TariffPeriod::HC, LinkyFrame { ptec: String::from("HC"), ..frame.clone() }.ptec());
-        assert_eq!(TariffPeriod::HP, LinkyFrame { ptec: String::from("HP"), ..frame.clone() }.ptec());
-        assert_eq!(TariffPeriod::Unknown, LinkyFrame { ptec: String::from("?"), ..frame }.ptec());
+        assert_eq!(
+            TariffPeriod::HC,
+            LinkyFrame {
+                ptec: String::from("HC"),
+                ..frame.clone()
+            }
+            .ptec()
+        );
+        assert_eq!(
+            TariffPeriod::HP,
+            LinkyFrame {
+                ptec: String::from("HP"),
+                ..frame.clone()
+            }
+            .ptec()
+        );
+        assert_eq!(
+            TariffPeriod::Unknown,
+            LinkyFrame {
+                ptec: String::from("?"),
+                ..frame
+            }
+            .ptec()
+        );
     }
-
 }

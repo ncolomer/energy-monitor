@@ -31,11 +31,10 @@ pub struct DataLoggerActor {
 
 #[derive(Clone)]
 pub struct DataLoggerHandle {
-    tx: broadcast::Sender<DataLoggerMessage>
+    tx: broadcast::Sender<DataLoggerMessage>,
 }
 
 impl DataLoggerActor {
-
     async fn wait_for_connectivity(&self) {
         // https://docs.influxdata.com/influxdb/v1.8/tools/api/#ping-http-endpoint
         const MAX_WAIT: Duration = Duration::from_secs(600);
@@ -46,10 +45,13 @@ impl DataLoggerActor {
             match self.client.get(&ping_url).send().await {
                 Ok(res) if res.status() == 204 => {
                     self.tx.send(Connected).unwrap_or_default();
-                    return
+                    return;
                 }
                 _ => {
-                    if latch { self.tx.send(Disconnected).unwrap_or_default(); latch = false; }
+                    if latch {
+                        self.tx.send(Disconnected).unwrap_or_default();
+                        latch = false;
+                    }
                     sleep(retry_delay).await;
                     retry_delay = max(retry_delay * 2, MAX_WAIT);
                 }
@@ -60,7 +62,9 @@ impl DataLoggerActor {
     async fn send_measurements(&self, payload: impl InfluxDbSerialize) {
         // https://docs.influxdata.com/influxdb/v1.8/tools/api/#write-http-endpoint
         let write_url = format!("{}/write", self.settings.base_url());
-        let request = self.client.post(write_url)
+        let request = self
+            .client
+            .post(write_url)
             .query(&[("db", &self.settings.database.as_str()), ("precision", &"ms")])
             .body(payload.to_line_data(&self.settings.prefix))
             .send();
@@ -70,7 +74,7 @@ impl DataLoggerActor {
             Err(err) if err.is_timeout() => {
                 self.tx.send(Disconnected).unwrap_or_default();
                 self.wait_for_connectivity().await;
-            },
+            }
             Err(_) => {}
         }
     }
@@ -109,19 +113,23 @@ impl DataLoggerActor {
         settings: &settings::InfluxDB,
         rpict: &RpictActorHandle,
         linky: &LinkyActorHandle,
-    ) -> Result<DataLoggerHandle, Box<dyn Error>>
-    {
+    ) -> Result<DataLoggerHandle, Box<dyn Error>> {
         let settings = settings.clone();
         let rpict_rx = rpict.subscribe();
         let linky_rx = linky.subscribe();
         let client = reqwest::Client::new();
         // fork
         let (tx, _) = broadcast::channel(1);
-        let mut actor = DataLoggerActor { settings, rpict_rx, linky_rx, client, tx: tx.clone() };
+        let mut actor = DataLoggerActor {
+            settings,
+            rpict_rx,
+            linky_rx,
+            client,
+            tx: tx.clone(),
+        };
         tokio::task::spawn(async move { actor.run().await });
         Ok(DataLoggerHandle { tx })
     }
-
 }
 
 impl DataLoggerHandle {
@@ -137,7 +145,8 @@ trait InfluxDbSerialize {
 
 impl InfluxDbSerialize for RpictFrame {
     fn to_line_data(&self, prefix: &Option<String>) -> String {
-        let measurement = vec![prefix.clone(), Some("rpict".to_string())].iter()
+        let measurement = vec![prefix.clone(), Some("rpict".to_string())]
+            .iter()
             .filter_map(|s| s.clone())
             .collect::<Vec<String>>()
             .join(".");
@@ -158,10 +167,11 @@ impl InfluxDbSerialize for RpictFrame {
             ("l3_irms", self.l3_irms),
             ("l3_vrms", self.l3_vrms),
             ("l3_power_factor", self.l3_power_factor),
-        ].iter()
-            .map(|(k, v)| format!("{k}={v}"))
-            .collect::<Vec<String>>()
-            .join(",");
+        ]
+        .iter()
+        .map(|(k, v)| format!("{k}={v}"))
+        .collect::<Vec<String>>()
+        .join(",");
         let timestamp = self.timestamp.timestamp_millis();
         format!("{measurement},{tags} {fields} {timestamp}")
     }
@@ -169,15 +179,14 @@ impl InfluxDbSerialize for RpictFrame {
 
 impl InfluxDbSerialize for LinkyFrame {
     fn to_line_data(&self, prefix: &Option<String>) -> String {
-        let measurement = vec![prefix.clone(), Some("linky".to_string())].iter()
+        let measurement = vec![prefix.clone(), Some("linky".to_string())]
+            .iter()
             .filter_map(|s| s.clone())
             .collect::<Vec<String>>()
             .join(".");
         let tags = format!("adco={}", self.adco);
-        let fields = vec![
-            ("hc_index", self.hchc),
-            ("hp_index", self.hchp),
-        ].iter()
+        let fields = vec![("hc_index", self.hchc), ("hp_index", self.hchp)]
+            .iter()
             .map(|(k, v)| format!("{k}={v}"))
             .collect::<Vec<String>>()
             .join(",");
@@ -213,15 +222,18 @@ mod tests {
             l3_irms: 0.18,
             l3_vrms: 259.70,
             l3_power_factor: 0.509,
-            timestamp: now
+            timestamp: now,
         };
         // When
         let actual = frame.to_line_data(&Some("prefix".to_string()));
         // Then
-        assert_eq!(actual, "prefix.rpict,node_id=11 \
+        assert_eq!(
+            actual,
+            "prefix.rpict,node_id=11 \
         l1_real_power=-82.96,l1_apparent_power=422.95,l1_irms=1.64,l1_vrms=257.65,l1_power_factor=0.194,\
         l2_real_power=-50.23,l2_apparent_power=144.52,l2_irms=0.56,l2_vrms=259.95,l2_power_factor=0.346,\
-        l3_real_power=24.55,l3_apparent_power=47.17,l3_irms=0.18,l3_vrms=259.7,l3_power_factor=0.509 1657113606");
+        l3_real_power=24.55,l3_apparent_power=47.17,l3_irms=0.18,l3_vrms=259.7,l3_power_factor=0.509 1657113606"
+        );
     }
 
     #[test]
@@ -233,12 +245,14 @@ mod tests {
             ptec: "HP".to_string(),
             hchc: 19_650_909,
             hchp: 43_280_553,
-            timestamp: now
+            timestamp: now,
         };
         // When
         let actual = frame.to_line_data(&Some("prefix".to_string()));
         // Then
-        assert_eq!(actual, "prefix.linky,adco=041876097767 hc_index=19650909,hp_index=43280553 1657113606");
+        assert_eq!(
+            actual,
+            "prefix.linky,adco=041876097767 hc_index=19650909,hp_index=43280553 1657113606"
+        );
     }
-
 }

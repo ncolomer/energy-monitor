@@ -1,3 +1,4 @@
+use embedded_graphics::primitives::StyledDrawable;
 use embedded_graphics::{
     mono_font::{ascii::*, MonoTextStyle},
     pixelcolor::BinaryColor,
@@ -5,7 +6,6 @@ use embedded_graphics::{
     primitives::{Line, PrimitiveStyle, Rectangle},
     text::{Alignment, Text},
 };
-use embedded_graphics::primitives::StyledDrawable;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct SparkLine {
@@ -13,7 +13,7 @@ pub struct SparkLine {
     label: String,
     max_value: f32,
     value: f32,
-    value_max: f32
+    value_max: f32,
 }
 
 impl SparkLine {
@@ -40,8 +40,9 @@ impl Drawable for SparkLine {
     type Output = ();
 
     fn draw<D>(&self, target: &mut D) -> Result<Self::Output, D::Error>
-        where D: DrawTarget<Color=Self::Color> {
-
+    where
+        D: DrawTarget<Color = Self::Color>,
+    {
         let border_style = PrimitiveStyle::with_stroke(BinaryColor::On, 1);
         let line_style = PrimitiveStyle::with_stroke(BinaryColor::On, 2);
         let text_style = MonoTextStyle::new(&FONT_5X7, BinaryColor::On);
@@ -52,10 +53,14 @@ impl Drawable for SparkLine {
             self.bottom_left,
             text_style,
             Alignment::Left,
-        ).draw(target)?;
+        )
+        .draw(target)?;
 
         // draw sparkline border
-        let border = Rectangle::with_corners(point, Point::new(target.bounding_box().size.width as i32 - 2, point.y - 5));
+        let border = Rectangle::with_corners(
+            point,
+            Point::new(target.bounding_box().size.width as i32 - 2, point.y - 5),
+        );
         border.into_styled(border_style).draw(target)?;
         let available_width = border.size.width as i32 - 5;
 
@@ -86,12 +91,14 @@ mod tests {
         // When
         let actual = SparkLine::new(point, string, 8000.0);
         // Then
-        assert!(matches!(actual, SparkLine { bottom_left, label, max_value, value, value_max }
+        assert!(
+            matches!(actual, SparkLine { bottom_left, label, max_value, value, value_max }
             if bottom_left == point
             && label == "la"
             && max_value == 8000.0
             && value == 0.0
-            && value_max == 0.0));
+            && value_max == 0.0)
+        );
     }
 
     #[test]

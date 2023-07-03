@@ -1,13 +1,13 @@
 use std::error::Error;
 
-use embedded_graphics::Drawable;
 use embedded_graphics::pixelcolor::BinaryColor;
+use embedded_graphics::Drawable;
 use tokio::sync::mpsc;
 use tokio::sync::oneshot;
 
 use DisplayMessage::*;
 
-use crate::display::pages::{StartupPage, LinkyPage, Page, RpictPage};
+use crate::display::pages::{LinkyPage, Page, RpictPage, StartupPage};
 use crate::driver::ssd1305::Ssd1305;
 
 #[derive(Debug)]
@@ -32,11 +32,14 @@ pub struct DisplayActorHandle {
 }
 
 impl DisplayActor {
-
     pub fn create() -> Result<DisplayActorHandle, Box<dyn Error>> {
         let (tx, rx) = mpsc::channel(1);
         let driver = Ssd1305::new()?;
-        let mut actor = DisplayActor { rx, driver, current_page: Page::Startup };
+        let mut actor = DisplayActor {
+            rx,
+            driver,
+            current_page: Page::Startup,
+        };
         tokio::task::spawn_blocking(move || actor.run());
         Ok(DisplayActorHandle { tx })
     }
@@ -48,20 +51,20 @@ impl DisplayActor {
                 SetDisplayOn => {
                     log::debug!("Display on");
                     self.driver.display_on().unwrap();
-                },
+                }
                 SetDisplayOff => {
                     log::debug!("Display off");
                     self.driver.display_off().unwrap();
-                },
+                }
                 DisplayStartupPage { page, replace } => {
                     self.update_display(Page::Startup, page, replace);
                 }
                 DisplayRpictPage { page, replace } => {
                     self.update_display(Page::Rpict, page, replace);
-                },
+                }
                 DisplayLinkyPage { page, replace } => {
                     self.update_display(Page::Linky, page, replace);
-                },
+                }
                 Shutdown(callback) => {
                     log::debug!("Shutdown display");
                     self.driver.display_off().unwrap();
@@ -73,8 +76,10 @@ impl DisplayActor {
         }
     }
 
-    fn update_display(&mut self, page: Page, drawable: impl Drawable<Color=BinaryColor>, replace: bool) {
-        if replace { self.current_page = page; }
+    fn update_display(&mut self, page: Page, drawable: impl Drawable<Color = BinaryColor>, replace: bool) {
+        if replace {
+            self.current_page = page;
+        }
         if self.current_page == page {
             log::debug!("Update display with {:?} page", self.current_page);
             drawable.draw(&mut self.driver).unwrap();
@@ -84,7 +89,6 @@ impl DisplayActor {
 }
 
 impl DisplayActorHandle {
-
     pub async fn set_display_off(&self) {
         let message = SetDisplayOff;
         self.tx.send(message).await.unwrap_or_default();
@@ -96,17 +100,26 @@ impl DisplayActorHandle {
     }
 
     pub async fn display_startup_page(&self, page: &StartupPage, replace: bool) {
-        let message = DisplayStartupPage { page: page.clone(), replace };
+        let message = DisplayStartupPage {
+            page: page.clone(),
+            replace,
+        };
         self.tx.send(message).await.unwrap_or_default();
     }
 
     pub async fn display_rpict_page(&self, page: &RpictPage, replace: bool) {
-        let message = DisplayRpictPage { page: page.clone(), replace };
+        let message = DisplayRpictPage {
+            page: page.clone(),
+            replace,
+        };
         self.tx.send(message).await.unwrap_or_default();
     }
 
     pub async fn display_linky_page(&self, page: &LinkyPage, replace: bool) {
-        let message = DisplayLinkyPage { page: page.clone(), replace };
+        let message = DisplayLinkyPage {
+            page: page.clone(),
+            replace,
+        };
         self.tx.send(message).await.unwrap_or_default();
     }
 
@@ -115,5 +128,4 @@ impl DisplayActorHandle {
         self.tx.send(Shutdown(tx)).await.unwrap_or_default();
         rx.await.unwrap_or_default()
     }
-
 }

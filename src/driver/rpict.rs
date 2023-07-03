@@ -31,7 +31,6 @@ pub struct RpictFrame {
 }
 
 impl RpictFrame {
-
     fn parse(input: &str, dt_gen: &dyn Fn() -> DateTime<Utc>) -> Result<Self, ParseError> {
         fn consume<'a, T: FromStr>(iter: &mut impl Iterator<Item = &'a str>) -> Result<T, ParseError> {
             iter.next().ok_or(ParseError)?.parse().or(Err(ParseError))
@@ -65,7 +64,7 @@ impl RpictFrame {
 
 struct RpictIterator {
     uart: Uart,
-    buffer: [u8; 1]
+    buffer: [u8; 1],
 }
 
 impl Iterator for RpictIterator {
@@ -74,13 +73,11 @@ impl Iterator for RpictIterator {
     fn next(&mut self) -> Option<Self::Item> {
         loop {
             match self.uart.read(&mut self.buffer) {
-                Ok(size) if size > 0 =>
-                    return Some(self.buffer[0].into()),
-                Ok(_size) =>
-                    continue,
+                Ok(size) if size > 0 => return Some(self.buffer[0].into()),
+                Ok(_size) => continue,
                 Err(_) => {
                     log::error!("error while reading bytestream");
-                    return None
+                    return None;
                 }
             }
         }
@@ -89,17 +86,16 @@ impl Iterator for RpictIterator {
 
 pub struct Rpict {
     port_path: Option<String>,
-    source_iter: Option<Box<dyn Iterator<Item=char>>>,
-    dt_gen: Rc<dyn Fn() -> DateTime<Utc>>
+    source_iter: Option<Box<dyn Iterator<Item = char>>>,
+    dt_gen: Rc<dyn Fn() -> DateTime<Utc>>,
 }
 
 impl Rpict {
-
     pub fn builder() -> Self {
         Self {
-            port_path :None,
+            port_path: None,
             source_iter: None,
-            dt_gen: Rc::new(Utc::now)
+            dt_gen: Rc::new(Utc::now),
         }
     }
 
@@ -108,32 +104,31 @@ impl Rpict {
         self
     }
 
-    pub fn with_source_iter(mut self, source_iter: impl Iterator<Item=char> + 'static) -> Self {
+    pub fn with_source_iter(mut self, source_iter: impl Iterator<Item = char> + 'static) -> Self {
         self.source_iter = Some(Box::new(source_iter));
         self
     }
 
-    pub fn with_dt_gen(mut self, dt_gen: impl Fn() -> DateTime<Utc> + 'static) -> Self{
+    pub fn with_dt_gen(mut self, dt_gen: impl Fn() -> DateTime<Utc> + 'static) -> Self {
         self.dt_gen = Rc::new(dt_gen);
         self
     }
 
-    pub fn build(self) -> Result<impl Iterator<Item=RpictFrame>, Box<dyn Error>> {
-        let Self { port_path, source_iter, dt_gen } = self;
-        let source_iter = source_iter.or_else(|| {
-            let port_path = port_path.expect("no port path provided");
-            let mut uart = Uart::with_path(
-                Path::new(&port_path),
-                38_400,
-                Parity::None,
-                8,
-                1
-            ).unwrap();
-            uart.set_read_mode(1, Duration::default()).unwrap();
-            Some(Box::new(RpictIterator { uart, buffer: [0u8] }))
-        }).expect("no source provided");
-        let iter =
-            source_iter
+    pub fn build(self) -> Result<impl Iterator<Item = RpictFrame>, Box<dyn Error>> {
+        let Self {
+            port_path,
+            source_iter,
+            dt_gen,
+        } = self;
+        let source_iter = source_iter
+            .or_else(|| {
+                let port_path = port_path.expect("no port path provided");
+                let mut uart = Uart::with_path(Path::new(&port_path), 38_400, Parity::None, 8, 1).unwrap();
+                uart.set_read_mode(1, Duration::default()).unwrap();
+                Some(Box::new(RpictIterator { uart, buffer: [0u8] }))
+            })
+            .expect("no source provided");
+        let iter = source_iter
             //.skip_while(|c| future::ready(c != '\n'))
             .scan(String::new(), |buffer, c| {
                 if c == '\n' {
@@ -146,14 +141,11 @@ impl Rpict {
                 }
             })
             .flatten()
-            .filter_map(move |s| {
-                match RpictFrame::parse(&s, &*dt_gen.clone()) {
-                    Ok(frame) =>
-                        Some(frame),
-                    Err(_) => {
-                        log::warn!("couldn't extract RpictFrame from string {}", s);
-                        None
-                    }
+            .filter_map(move |s| match RpictFrame::parse(&s, &*dt_gen.clone()) {
+                Ok(frame) => Some(frame),
+                Err(_) => {
+                    log::warn!("couldn't extract RpictFrame from string {}", s);
+                    None
                 }
             });
         Ok(iter)
@@ -164,7 +156,8 @@ impl Rpict {
 mod tests {
     use super::*;
 
-    const FRAME: &str = "11 -82.96 422.95 1.64 257.65 0.194 -50.23 144.52 0.56 259.95 0.346 24.55 47.17 0.18 259.70 0.509";
+    const FRAME: &str =
+        "11 -82.96 422.95 1.64 257.65 0.194 -50.23 144.52 0.56 259.95 0.346 24.55 47.17 0.18 259.70 0.509";
     fn frame(now: DateTime<Utc>) -> RpictFrame {
         RpictFrame {
             node_id: 11,
@@ -183,7 +176,7 @@ mod tests {
             l3_irms: 0.18,
             l3_vrms: 259.70,
             l3_power_factor: 0.509,
-            timestamp: now
+            timestamp: now,
         }
     }
 
@@ -196,7 +189,8 @@ mod tests {
         let frames = Rpict::builder()
             .with_source_iter(input)
             .with_dt_gen(move || now)
-            .build().unwrap();
+            .build()
+            .unwrap();
         // Then
         assert_eq!(frames.collect::<Vec<RpictFrame>>(), vec![frame(now)]);
     }
@@ -211,7 +205,8 @@ mod tests {
         let frames = Rpict::builder()
             .with_source_iter(input.clone().cycle().take(input_len * 2))
             .with_dt_gen(move || now)
-            .build().unwrap();
+            .build()
+            .unwrap();
         // Then
         assert_eq!(frames.collect::<Vec<RpictFrame>>(), vec![frame(now), frame(now)]);
     }
@@ -225,7 +220,8 @@ mod tests {
         let frames = Rpict::builder()
             .with_source_iter(input)
             .with_dt_gen(move || now)
-            .build().unwrap();
+            .build()
+            .unwrap();
         // Then
         assert_eq!(frames.collect::<Vec<RpictFrame>>(), Vec::new());
     }
@@ -269,5 +265,4 @@ mod tests {
         // Then
         assert_eq!(result, Err(ParseError))
     }
-
 }

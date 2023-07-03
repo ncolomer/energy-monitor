@@ -2,10 +2,8 @@ use std::error::Error;
 use std::thread;
 use std::time::Duration;
 
-use embedded_graphics::{
-    prelude::*,
-};
 use embedded_graphics::pixelcolor::BinaryColor;
+use embedded_graphics::prelude::*;
 use rppal::gpio;
 use rppal::spi::{Bus, Mode, SlaveSelect, Spi};
 
@@ -33,7 +31,12 @@ impl Ssd1305 {
         let gpio = gpio::Gpio::new()?;
         let gpio_dc = gpio.get(GPIO_DC)?.into_output();
         let gpio_rst = gpio.get(GPIO_RST)?.into_output();
-        Ok(Self { buffer, gpio_dc, gpio_rst, spi })
+        Ok(Self {
+            buffer,
+            gpio_dc,
+            gpio_rst,
+            spi,
+        })
     }
 
     fn reset(&mut self) {
@@ -47,7 +50,7 @@ impl Ssd1305 {
 
     fn command(&mut self, cmd: u8) -> Result<(), CommError> {
         self.gpio_dc.write(gpio::Level::Low);
-        self.spi.write(&[cmd]).map_err(|_|CommError)?;
+        self.spi.write(&[cmd]).map_err(|_| CommError)?;
         Ok(())
     }
 
@@ -112,7 +115,7 @@ impl Ssd1305 {
             let end_index: usize = start_index + DISPLAY_WIDTH;
             let page_slice = &self.buffer[start_index..end_index];
 
-            self.spi.write(page_slice).map_err(|_|CommError)?;
+            self.spi.write(page_slice).map_err(|_| CommError)?;
         }
         Ok(())
     }
@@ -123,15 +126,18 @@ impl DrawTarget for Ssd1305 {
     type Error = core::convert::Infallible;
 
     fn draw_iter<I>(&mut self, pixels: I) -> Result<(), Self::Error>
-        where I: IntoIterator<Item = Pixel<Self::Color>>,
+    where
+        I: IntoIterator<Item = Pixel<Self::Color>>,
     {
         for Pixel(Point { x, y }, color) in pixels.into_iter() {
-            if x < 0 || y < 0 || x >= DISPLAY_WIDTH as i32 || y >= DISPLAY_HEIGHT as i32 { continue; }
+            if x < 0 || y < 0 || x >= DISPLAY_WIDTH as i32 || y >= DISPLAY_HEIGHT as i32 {
+                continue;
+            }
             let (x, y) = (x as usize, y as usize);
             let index = x + (y / 8) * DISPLAY_WIDTH;
             match color {
                 BinaryColor::On => self.buffer[index] |= 1 << (y % 8),
-                BinaryColor::Off => self.buffer[index] &= !(1 << (y % 8))
+                BinaryColor::Off => self.buffer[index] &= !(1 << (y % 8)),
             }
         }
         Ok(())
