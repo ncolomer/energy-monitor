@@ -28,7 +28,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with: { shared-key: build-cache }
       - run: rustup target add arm-unknown-linux-gnueabi && cargo install cross
-      - name: Compile
+      - name: Check
         run: cross check
   test:
     name: Test
