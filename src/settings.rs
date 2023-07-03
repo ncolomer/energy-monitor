@@ -36,11 +36,21 @@ impl InfluxDB {
 
 #[derive(Debug, Deserialize, Clone)]
 #[allow(unused)]
+pub struct HassMqtt {
+    pub host: String,
+    pub port: u16,
+    pub username: Option<String>,
+    pub password: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[allow(unused)]
 pub struct Settings {
     pub log_level: String,
     pub hmi: Hmi,
     pub serial: Serial,
     pub influxdb: Option<InfluxDB>,
+    pub hassmqtt: Option<HassMqtt>,
 }
 
 impl Settings {

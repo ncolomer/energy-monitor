@@ -105,6 +105,16 @@ impl HmiActor {
                 self.startup_page.influxdb_status(false);
                 self.display.display_startup_page(&self.startup_page, false).await;
             }
+            DataLoggerMessage::HassMqttConnected => {
+                log::info!("HassMqtt connected");
+                self.startup_page.hassmqtt_status(true);
+                self.display.display_startup_page(&self.startup_page, false).await;
+            }
+            DataLoggerMessage::HassMqttDisconnected => {
+                log::warn!("HassMqtt disconnected");
+                self.startup_page.hassmqtt_status(false);
+                self.display.display_startup_page(&self.startup_page, false).await;
+            }
         }
     }
 

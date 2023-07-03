@@ -25,6 +25,7 @@ pub struct StartupPage {
     is_rpict_connected: bool,
     is_linky_connected: bool,
     is_influxdb_connected: bool,
+    is_hassmqtt_connected: bool,
     version: String,
 }
 
@@ -35,6 +36,7 @@ impl StartupPage {
             is_rpict_connected: false,
             is_linky_connected: false,
             is_influxdb_connected: false,
+            is_hassmqtt_connected: false,
             version,
         }
     }
@@ -49,6 +51,10 @@ impl StartupPage {
 
     pub fn influxdb_status(&mut self, is_connected: bool) {
         self.is_influxdb_connected = is_connected;
+    }
+
+    pub fn hassmqtt_status(&mut self, is_connected: bool) {
+        self.is_hassmqtt_connected = is_connected;
     }
 }
 
@@ -264,7 +270,7 @@ mod tests {
         let actual = StartupPage::new("0.0.0");
         // Then
         assert!(
-            matches!(actual, StartupPage { is_rpict_connected: false, is_linky_connected: false, is_influxdb_connected: false, version }
+            matches!(actual, StartupPage { is_rpict_connected: false, is_linky_connected: false, is_influxdb_connected: false, is_hassmqtt_connected: false, version }
             if version == "0.0.0")
         );
     }

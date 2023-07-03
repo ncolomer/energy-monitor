@@ -7,10 +7,11 @@ use std::time::Duration;
 
 use chrono::{DateTime, Utc};
 use rppal::uart::{Parity, Uart};
+use serde::Serialize;
 
 use crate::driver::error::ParseError;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct LinkyFrame {
     pub adco: String, // electric meter address
     pub ptec: String, // current tariff period
