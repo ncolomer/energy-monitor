@@ -84,7 +84,7 @@ mod tests {
         let point = Point::new(0, 0);
         let string = String::from("label");
         // When
-        let actual = SparkLine::new(point, string.clone(), 8000.0);
+        let actual = SparkLine::new(point, string, 8000.0);
         // Then
         assert!(matches!(actual, SparkLine { bottom_left, label, max_value, value, value_max }
             if bottom_left == point
@@ -99,7 +99,7 @@ mod tests {
         // Given
         let point = Point::new(0, 0);
         let string = String::from("label");
-        let mut actual = SparkLine::new(point, string.clone(), 8000.0);
+        let mut actual = SparkLine::new(point, string, 8000.0);
         // Case 1
         actual.update(100.0);
         assert!(matches!(actual, SparkLine { value, value_max, .. } if value == 100.0 && value_max == 100.0));

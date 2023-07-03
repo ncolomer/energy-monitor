@@ -245,7 +245,7 @@ mod tests {
         // Given
         let input = &FRAME[10..];
         // When
-        let result = RpictFrame::parse(input, &|| Utc::now());
+        let result = RpictFrame::parse(input, &Utc::now);
         // Then
         assert_eq!(result, Err(ParseError))
     }
@@ -255,7 +255,7 @@ mod tests {
         // Given
         let input = &FRAME[..10];
         // When
-        let result = RpictFrame::parse(input, &|| Utc::now());
+        let result = RpictFrame::parse(input, &Utc::now);
         // Then
         assert_eq!(result, Err(ParseError))
     }
@@ -265,7 +265,7 @@ mod tests {
         // Given
         let input = FRAME.to_string() + " 259.70 0.509";
         // When
-        let result = RpictFrame::parse(&input, &|| Utc::now());
+        let result = RpictFrame::parse(&input, &Utc::now);
         // Then
         assert_eq!(result, Err(ParseError))
     }

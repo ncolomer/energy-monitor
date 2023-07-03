@@ -323,7 +323,7 @@ mod tests {
         // When & Then
         assert_eq!(TariffPeriod::HC, LinkyFrame { ptec: String::from("HC"), ..frame.clone() }.ptec());
         assert_eq!(TariffPeriod::HP, LinkyFrame { ptec: String::from("HP"), ..frame.clone() }.ptec());
-        assert_eq!(TariffPeriod::Unknown, LinkyFrame { ptec: String::from("?"), ..frame.clone() }.ptec());
+        assert_eq!(TariffPeriod::Unknown, LinkyFrame { ptec: String::from("?"), ..frame }.ptec());
     }
 
 }
