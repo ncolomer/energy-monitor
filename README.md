@@ -6,14 +6,14 @@
 
 > “You can't improve what you don't measure”
 
-This project is a DIY module + a Rust application that aims at measuring electrical consumption metrics, display collected values on an OLED display, and send them to an external InfluxDB database for storage. 
+This project is a DIY module + a [Rust](https://www.rust-lang.org/) application that aims at measuring grid consumption metrics, display collected values on an OLED display, and send them to an external InfluxDB database for storage.
 
-The module was designed to fit any standard electrical panel (same form factor as a circuit breaker) and has 90mm width.
+The module was designed to fit any European-standard distribution boards (same form factor as a circuit breaker) and has 90mm (5-module) width.
 It does not collect data directly but rather fetches metrics from [Lechacal](http://lechacal.com/)'s [RPICT](http://lechacal.com/wiki/index.php?title=Raspberrypi_Current_and_Temperature_Sensor_Adaptor) module and Enedis [Linky](https://fr.wikipedia.org/wiki/Linky) electric meter (France national power provider).
 
 I built this project to observe and store my own energy consumption, to eventually improve it. And, well... also because it looked a cool DIY project (it actually was!).
 
-:warning: My electrical installation has three-phase power supply. Even though the project can run on one-phase power supply, it might also need some adaptation. Any contribution welcome!
+⚠️ My electrical installation has three-phase power supply. Even though the project could run on one-phase power supply, it might also need some adaptation. Any contribution welcome!
 
 [![GitHub release](https://img.shields.io/github/v/release/ncolomer/energy-monitor?label=latest%20release&sort=semver&style=for-the-badge)](https://github.com/ncolomer/energy-monitor/releases/latest)
 
@@ -39,22 +39,22 @@ The user interface is composed of several pages that can be cycled using the pus
 
 #### Startup screen
 
-> <img height="96" alt="startup screen" src="https://user-images.githubusercontent.com/941891/224688501-87548e33-f3ce-47d1-9e3e-d085a6000a66.png">
+> <img height="96" alt="startup screen" src="https://raw.githubusercontent.com/ncolomer/energy-monitor/6710a5a/docs/images/page-startup.png">
 
 This screen displays the project logo, connection statuses and the current application version.
 It is shown at application startup and also belongs to the page carousel (last position).
 
 Connection statuses are:
-- <img height="16" alt="RPICT" src="https://user-images.githubusercontent.com/941891/147661966-e53ac02a-9856-4179-8a61-28c6abbc21b7.png">
+- <img height="16" alt="RPICT" src="https://raw.githubusercontent.com/ncolomer/energy-monitor/6710a5a/docs/images/icon-rpict-on.png">
   RPICT status, white square means connected.
-- <img height="16" alt="Linky" src="https://user-images.githubusercontent.com/941891/147662128-ec6107df-cc06-4576-aa8f-3746874ef76e.png">
+- <img height="16" alt="Linky" src="https://raw.githubusercontent.com/ncolomer/energy-monitor/6710a5a/docs/images/icon-linky-on.png">
   Linky status, white square means connected.
-- <img height="16" alt="InfluxDB" src="https://user-images.githubusercontent.com/941891/147662201-dce46e58-cf2b-474e-b7a1-f6374338cd35.png">
+- <img height="16" alt="InfluxDB" src="https://raw.githubusercontent.com/ncolomer/energy-monitor/6710a5a/docs/images/icon-influxdb-on.png">
   InfluxDB status, white square means connected.
 
 #### Instantaneous metrics screen (RPICT)
 
-> <img height="96" alt="rpict screen" src="https://user-images.githubusercontent.com/941891/224688506-7cb726e1-43ce-4f90-ba1e-33d954900f29.png">
+> <img height="96" alt="rpict screen" src="https://raw.githubusercontent.com/ncolomer/energy-monitor/6710a5a/docs/images/page-rpict.png">
 
 This screen displays instantaneous metrics measured from the RPICT:
 - **lines apparent power** value with a gauge that shows the max seen value since boot
@@ -65,7 +65,7 @@ It is the first displayed screen when waking up from sleep.
 
 #### Cumulated metrics screens (Linky)
 
-> <img height="96" alt="linky screen" src="https://user-images.githubusercontent.com/941891/224688505-4113e42a-946a-4c44-91ea-93ce31b0b1bb.png">
+> <img height="96" alt="linky screen" src="https://raw.githubusercontent.com/ncolomer/energy-monitor/6710a5a/docs/images/page-linky.png">
 
 This screen displays instantaneous metrics collected from the Linky:
 - Linky's counter **unique id**

@@ -11,8 +11,8 @@ use crate::driver::error::CommError;
 
 const GPIO_DC: u8 = 24;
 const GPIO_RST: u8 = 25;
-const DISPLAY_WIDTH: usize = 128;
-const DISPLAY_HEIGHT: usize = 32;
+pub const DISPLAY_WIDTH: usize = 128;
+pub const DISPLAY_HEIGHT: usize = 32;
 
 const SET_DISP: u8 = 0xAE; // turn display on/off
 const SET_CONTRAST: u8 = 0x81; // set display contrast
