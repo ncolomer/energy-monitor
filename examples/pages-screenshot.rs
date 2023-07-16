@@ -1,14 +1,13 @@
-
-use std::path::Path;
 use embedded_graphics::image::ImageRaw;
-use embedded_graphics::prelude::*;
 use embedded_graphics::pixelcolor::BinaryColor;
+use embedded_graphics::prelude::*;
+use std::path::Path;
 
-use image::{ImageBuffer, Luma, imageops::resize};
-use energy_monitor::display::pages::*;
 use energy_monitor::display::icons::*;
+use energy_monitor::display::pages::*;
 use energy_monitor::driver::linky::TariffPeriod;
-use energy_monitor::driver::ssd1305::{DISPLAY_WIDTH, DISPLAY_HEIGHT};
+use energy_monitor::driver::ssd1305::{DISPLAY_HEIGHT, DISPLAY_WIDTH};
+use image::{imageops::resize, ImageBuffer, Luma};
 
 // Inspired from https://github.com/embedded-graphics/embedded-graphics/blob/657fb4b/tools/png-target/src/lib.rs
 
@@ -25,16 +24,19 @@ impl PngTarget {
 
     pub fn save<PATH: AsRef<Path>>(&self, path: PATH) -> image::ImageResult<()> {
         let scale = 3;
-        resize(
+        let resized = resize(
             &self.image,
             self.image.width() * scale,
             self.image.height() * scale,
             image::imageops::FilterType::Nearest,
-        ).save_with_format(path, image::ImageFormat::Png)
+        );
+        resized.save_with_format(path, image::ImageFormat::Png)
     }
 
     pub fn save_page<D, P: AsRef<Path>>(&mut self, drawable: &D, path: P)
-        where D: Drawable<Color=BinaryColor> {
+    where
+        D: Drawable<Color = BinaryColor>,
+    {
         drawable.draw(self).unwrap();
         self.save(path).unwrap();
     }
@@ -50,17 +52,14 @@ impl DrawTarget for PngTarget {
     type Error = std::convert::Infallible;
 
     fn draw_iter<I>(&mut self, pixels: I) -> Result<(), Self::Error>
-        where
-            I: IntoIterator<Item=Pixel<Self::Color>>,
+    where
+        I: IntoIterator<Item = Pixel<Self::Color>>,
     {
         for Pixel(p, c) in pixels {
             if let (Ok(x), Ok(y)) = (u32::try_from(p.x), u32::try_from(p.y)) {
                 if x < self.image.width() && y < self.image.height() {
-                    self.image.put_pixel(
-                        p.x as u32,
-                        p.y as u32,
-                        Luma([if c.is_on() { 255 } else { 0 }]),
-                    );
+                    self.image
+                        .put_pixel(p.x as u32, p.y as u32, Luma([if c.is_on() { 255 } else { 0 }]));
                 }
             }
         }

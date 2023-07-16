@@ -84,7 +84,9 @@ impl DataLoggerActor {
         rpict: &RpictActorHandle,
         linky: &LinkyActorHandle,
     ) -> Result<DataLoggerHandle, Box<dyn Error>> {
-        let influxdb = influxdb_settings.clone().map(|settings| InfluxDBClient::new(&settings).unwrap());
+        let influxdb = influxdb_settings
+            .clone()
+            .map(|settings| InfluxDBClient::new(&settings).unwrap());
         let rpict_rx = rpict.subscribe();
         let linky_rx = linky.subscribe();
         // fork
