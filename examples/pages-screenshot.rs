@@ -1,4 +1,4 @@
-use std::error::Error;
+
 use std::path::Path;
 use embedded_graphics::image::ImageRaw;
 use embedded_graphics::prelude::*;
