@@ -2,7 +2,7 @@
 
 This project is implemented in [Rust](https://www.rust-lang.org/).
 
-Following sections are some tips to ease development cycle, especially if you code on MacOS.
+Following sections describe tips to ease development cycle, especially if you code on MacOS.
 
 ## Compile and lint locally
 
