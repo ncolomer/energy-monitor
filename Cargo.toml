@@ -21,5 +21,8 @@ lazy_static = "1.4.0"
 embedded-graphics = "0.7.1"
 rppal = "0.14.1"
 
+[dev-dependencies]
+image = { version = "0.24.6", default-features = false, features = ["png"] }
+
 [package.metadata.cross.build]
 default-target = "arm-unknown-linux-gnueabi"

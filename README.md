@@ -6,14 +6,14 @@
 
 > “You can't improve what you don't measure”
 
-This project is a DIY module + a Rust application that aims at measuring electrical consumption metrics, display collected values on an OLED display, and send them to an external InfluxDB database for storage. 
+This project is a DIY module + a [Rust](https://www.rust-lang.org/) application that aims at measuring grid consumption metrics, display collected values on an OLED display, and send them to an external InfluxDB database for storage.
 
-The module was designed to fit any standard electrical panel (same form factor as a circuit breaker) and has 90mm width.
+The module was designed to fit any standard electrical panel (it has same form factor as a circuit breaker) and has 90mm width.
 It does not collect data directly but rather fetches metrics from [Lechacal](http://lechacal.com/)'s [RPICT](http://lechacal.com/wiki/index.php?title=Raspberrypi_Current_and_Temperature_Sensor_Adaptor) module and Enedis [Linky](https://fr.wikipedia.org/wiki/Linky) electric meter (France national power provider).
 
 I built this project to observe and store my own energy consumption, to eventually improve it. And, well... also because it looked a cool DIY project (it actually was!).
 
-:warning: My electrical installation has three-phase power supply. Even though the project can run on one-phase power supply, it might also need some adaptation. Any contribution welcome!
+⚠︎ My electrical installation has three-phase power supply. Even though the project could run on one-phase power supply, it might also need some adaptation. Any contribution welcome!
 
 [![GitHub release](https://img.shields.io/github/v/release/ncolomer/energy-monitor?label=latest%20release&sort=semver&style=for-the-badge)](https://github.com/ncolomer/energy-monitor/releases/latest)
 
