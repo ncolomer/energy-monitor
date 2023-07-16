@@ -95,13 +95,13 @@ impl HmiActor {
 
     async fn handle_datalogger(&mut self, msg: DataLoggerMessage) {
         match msg {
-            DataLoggerMessage::Connected => {
-                log::info!("Data logger connected");
+            DataLoggerMessage::InfluxDbConnected => {
+                log::info!("InfluxDb connected");
                 self.startup_page.influxdb_status(true);
                 self.display.display_startup_page(&self.startup_page, false).await;
             }
-            DataLoggerMessage::Disconnected => {
-                log::warn!("Data logger disconnected");
+            DataLoggerMessage::InfluxDbDisconnected => {
+                log::warn!("InfluxDb disconnected");
                 self.startup_page.influxdb_status(false);
                 self.display.display_startup_page(&self.startup_page, false).await;
             }

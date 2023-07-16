@@ -42,7 +42,7 @@ pub struct Settings {
     pub log_level: String,
     pub hmi: Hmi,
     pub serial: Serial,
-    pub influxdb: InfluxDB,
+    pub influxdb: Option<InfluxDB>,
 }
 
 impl Settings {
@@ -59,5 +59,23 @@ impl Settings {
                 .separator("__"),
         );
         builder.build()?.try_deserialize()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    #[test]
+    fn test_load_default_settings() {
+        let _ = Settings::new(None);
+    }
+
+    #[test]
+    fn test_load_example_settings() {
+        let example_settings = include_str!("settings.example.yml").to_string();
+        let settings = Settings::new(Some(example_settings)).unwrap();
+        assert!(settings.influxdb.is_some());
     }
 }

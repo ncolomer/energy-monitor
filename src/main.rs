@@ -1,4 +1,5 @@
 use std::error::Error;
+use std::fs;
 use std::path::PathBuf;
 
 use clap::{arg, command, value_parser};
@@ -19,7 +20,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 .value_parser(value_parser!(PathBuf)),
         )
         .get_matches();
-    let settings = Settings::new(matches.get_one::<PathBuf>("config")).expect("Can't load settings");
+    let config_file = matches.get_one::<PathBuf>("config")
+        .map(|path| fs::read_to_string(path).unwrap());
+    let settings = Settings::new(config_file).expect("Can't load settings");
     env_logger::Builder::new().parse_filters(&settings.log_level).init();
     log::debug!("{:?}", settings);
 
