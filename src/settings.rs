@@ -1,5 +1,3 @@
-use std::ops::Deref;
-use std::path::PathBuf;
 use std::result::Result;
 
 use config::{Config, ConfigError, Environment, File, FileFormat};
@@ -46,18 +44,16 @@ pub struct Settings {
 }
 
 impl Settings {
-    pub fn new(config_file_path: Option<&PathBuf>) -> Result<Self, ConfigError> {
+    pub fn new(yaml_config_opt: Option<String>) -> Result<Self, ConfigError> {
+        let mut builder = Config::builder();
         const DEFAULTS: &str = include_str!("settings.default.yml");
-        let mut builder = Config::builder().add_source(File::from_str(DEFAULTS, FileFormat::Yaml));
-        if let Some(path) = config_file_path {
-            builder = builder.add_source(File::from(path.deref()).format(FileFormat::Yaml));
+        builder = builder.add_source(File::from_str(DEFAULTS, FileFormat::Yaml));
+        if let Some(yaml_str) = yaml_config_opt {
+            builder = builder.add_source(File::from_str(&yaml_str, FileFormat::Yaml));
         }
-        builder = builder.add_source(
-            Environment::with_prefix("app")
-                // See https://github.com/mehcode/config-rs/issues/391
-                .prefix_separator("__")
-                .separator("__"),
-        );
+        // See https://github.com/mehcode/config-rs/issues/391
+        let env = Environment::with_prefix("app").prefix_separator("__").separator("__");
+        builder = builder.add_source(env);
         builder.build()?.try_deserialize()
     }
 }
