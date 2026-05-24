@@ -122,16 +122,17 @@ impl Linky {
             source_iter,
             dt_gen,
         } = self;
-        let source_iter = source_iter
-            .or_else(|| {
-                let port_path = port_path.expect("no port path provided");
+        let source_iter: Box<dyn Iterator<Item = char>> = match source_iter {
+            Some(iter) => iter,
+            None => {
+                let port_path = port_path.ok_or("no port path provided")?;
                 // See https://www.enedis.fr/sites/default/files/Enedis-NOI-CPT_54E.pdf
                 // 5.3.5. Couche physique — Page : 12/38
-                let mut uart = Uart::with_path(Path::new(&port_path), 1_200, Parity::Even, 7, 1).unwrap();
-                uart.set_read_mode(1, Duration::default()).unwrap();
-                Some(Box::new(LinkyIterator { uart, buffer: [0u8] }))
-            })
-            .expect("no source provided");
+                let mut uart = Uart::with_path(Path::new(&port_path), 1_200, Parity::Even, 7, 1)?;
+                uart.set_read_mode(1, Duration::default())?;
+                Box::new(LinkyIterator { uart, buffer: [0u8] })
+            }
+        };
         // TIC mode Historique (vs. new Standard mode)
         // < LF > (0x0A) | Etiquette | < HT > (0x09) | Donnée | < HT > (0x09) | Checksum | < CR > (0x0D)
         // See https://www.enedis.fr/sites/default/files/Enedis-NOI-CPT_54E.pdf
@@ -217,6 +218,14 @@ mod tests {
             hchp: 43_280_553,
             timestamp: now,
         }
+    }
+
+    #[test]
+    fn build_returns_err_when_uart_path_invalid() {
+        let result = Linky::builder()
+            .with_port_path("/dev/nonexistent-uart-for-test".to_string())
+            .build();
+        assert!(result.is_err(), "expected Err from invalid UART path, got Ok");
     }
 
     #[test]

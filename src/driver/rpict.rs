@@ -120,14 +120,15 @@ impl Rpict {
             source_iter,
             dt_gen,
         } = self;
-        let source_iter = source_iter
-            .or_else(|| {
-                let port_path = port_path.expect("no port path provided");
-                let mut uart = Uart::with_path(Path::new(&port_path), 38_400, Parity::None, 8, 1).unwrap();
-                uart.set_read_mode(1, Duration::default()).unwrap();
-                Some(Box::new(RpictIterator { uart, buffer: [0u8] }))
-            })
-            .expect("no source provided");
+        let source_iter: Box<dyn Iterator<Item = char>> = match source_iter {
+            Some(iter) => iter,
+            None => {
+                let port_path = port_path.ok_or("no port path provided")?;
+                let mut uart = Uart::with_path(Path::new(&port_path), 38_400, Parity::None, 8, 1)?;
+                uart.set_read_mode(1, Duration::default())?;
+                Box::new(RpictIterator { uart, buffer: [0u8] })
+            }
+        };
         let iter = source_iter
             //.skip_while(|c| future::ready(c != '\n'))
             .scan(String::new(), |buffer, c| {
@@ -178,6 +179,14 @@ mod tests {
             l3_power_factor: 0.509,
             timestamp: now,
         }
+    }
+
+    #[test]
+    fn build_returns_err_when_uart_path_invalid() {
+        let result = Rpict::builder()
+            .with_port_path("/dev/nonexistent-uart-for-test".to_string())
+            .build();
+        assert!(result.is_err(), "expected Err from invalid UART path, got Ok");
     }
 
     #[test]

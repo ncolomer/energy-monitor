@@ -1,9 +1,9 @@
 use std::thread::sleep;
-use std::time::Duration;
 use tokio::sync::broadcast;
 
 use LinkyMessage::*;
 
+use crate::actor::blocking::{run_blocking_actor, ConnectionMessage};
 use crate::driver::linky::{Linky, LinkyFrame};
 
 #[derive(Clone, Debug)]
@@ -11,6 +11,19 @@ pub enum LinkyMessage {
     Connected,
     Disconnected,
     NewFrame(LinkyFrame),
+}
+
+impl ConnectionMessage for LinkyMessage {
+    type Frame = LinkyFrame;
+    fn connected() -> Self {
+        Connected
+    }
+    fn disconnected() -> Self {
+        Disconnected
+    }
+    fn frame(frame: LinkyFrame) -> Self {
+        NewFrame(frame)
+    }
 }
 
 pub struct LinkyActor;
@@ -26,20 +39,10 @@ impl LinkyActor {
         let (tx, _) = broadcast::channel(5);
         let tx2 = tx.clone();
         tokio::task::spawn_blocking(move || {
-            sleep(Duration::from_secs(1));
-            let iter = Linky::builder().with_port_path(serial_path).build();
-            if let Err(e) = iter {
-                log::debug!("Cannot connect Linky: {:?}", e);
-                tx.send(Disconnected).unwrap_or_default();
-                return;
-            } else {
-                tx.send(Connected).unwrap_or_default();
-            }
-            for frame in iter.unwrap() {
-                if tx.send(NewFrame(frame)).is_err() {
-                    break;
-                }
-            }
+            let attempts = std::iter::repeat_with(move || {
+                Linky::builder().with_port_path(serial_path.clone()).build()
+            });
+            run_blocking_actor::<LinkyMessage, _, _, _>(attempts, tx, sleep);
         });
         LinkyActorHandle { tx: tx2 }
     }
