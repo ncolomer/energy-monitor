@@ -86,9 +86,7 @@ impl Drawable for StartupPage {
         )
         .draw(target)?;
 
-        // Status icons, laid out left-to-right with a uniform 10px pitch. Sources
-        // are always shown; a sink icon is added only when that sink is configured,
-        // so any combination keeps consistent spacing.
+        // Sources are always shown; a sink icon is added only when that sink is configured.
         let mut icons: Vec<&ImageRaw<'static, BinaryColor>> = Vec::new();
         icons.push(if self.is_rpict_connected { &*RPICT_ON } else { &*RPICT_OFF });
         icons.push(if self.is_linky_connected { &*LINKY_ON } else { &*LINKY_OFF });

@@ -21,7 +21,6 @@ const EXPIRE_AFTER_SECS: u32 = 60;
 // event-loop task never blocks on its own request channel while (re)announcing.
 const CHANNEL_CAPACITY: usize = 64;
 
-/// A single MQTT message: the pure result of serializing a sensor config or a frame.
 #[derive(Debug, PartialEq)]
 pub struct Message {
     pub topic: String,
@@ -44,7 +43,6 @@ impl Sensor {
         format!("{DEVICE_ID}/{}", self.source)
     }
 
-    /// Builds the retained discovery (config) message for this sensor.
     /// See https://www.home-assistant.io/integrations/mqtt/#mqtt-discovery
     fn to_discovery_message(&self, discovery_prefix: &str, availability_topic: &str) -> Message {
         let topic = format!(
@@ -87,7 +85,6 @@ impl Sensor {
     }
 }
 
-/// A frame that can be published as a Home Assistant state message.
 pub trait ToHassMqtt {
     fn to_state_message(&self) -> Message;
 }
@@ -215,9 +212,8 @@ impl HassMqttClient {
         Ok(HassMqttClient { client, connected })
     }
 
-    /// Publishes a frame's state. Non-blocking: drops the message (logged) if the
-    /// outgoing queue is full (e.g. while the broker is unreachable), so a dead
-    /// broker never stalls the data logger.
+    /// Non-blocking: drops the message (logged) if the outgoing queue is full (e.g.
+    /// while the broker is unreachable), so a dead broker never stalls the data logger.
     pub fn publish(&self, payload: &impl ToHassMqtt) -> Result<(), HassMqttClientError> {
         let Message { topic, payload } = payload.to_state_message();
         self.client.try_publish(topic, QoS::AtLeastOnce, false, payload).map_err(|e| {
@@ -231,7 +227,6 @@ impl HassMqttClient {
     }
 }
 
-/// Publishes all retained discovery configs followed by the `online` availability.
 /// Uses `try_publish` so it never blocks the event loop that drains the queue.
 fn announce(client: &AsyncClient, discovery: &[Message], availability_topic: &str) {
     for Message { topic, payload } in discovery {
