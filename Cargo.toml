@@ -7,7 +7,7 @@ edition = "2021"
 [dependencies]
 log = "0.4.17"
 env_logger = "0.10.0"
-chrono = "0.4.23"
+chrono = { version = "0.4.23", features = ["serde"] }
 tokio = { version = "1.25", features = ["full"] }
 
 clap = { version = "4.1.1", features = ["cargo"] }
@@ -15,6 +15,7 @@ config = { version = "0.13.3", features = ["yaml"], default-features = false }
 openssl = { version = "0.10", features = ["vendored"] }
 serde = { version = "1.0", features = ["derive"] }
 reqwest = { version = "0.11", features = ["json"] }
+rumqttc = { version = "0.24", default-features = false }
 serde_json = "1.0"
 lazy_static = "1.4.0"
 

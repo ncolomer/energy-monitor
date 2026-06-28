@@ -105,6 +105,16 @@ impl HmiActor {
                 self.startup_page.influxdb_status(false);
                 self.display.display_startup_page(&self.startup_page, false).await;
             }
+            DataLoggerMessage::HassMqttConnected => {
+                log::info!("Home Assistant MQTT connected");
+                self.startup_page.hassmqtt_status(true);
+                self.display.display_startup_page(&self.startup_page, false).await;
+            }
+            DataLoggerMessage::HassMqttDisconnected => {
+                log::warn!("Home Assistant MQTT disconnected");
+                self.startup_page.hassmqtt_status(false);
+                self.display.display_startup_page(&self.startup_page, false).await;
+            }
         }
     }
 
@@ -158,6 +168,8 @@ impl HmiActor {
         rpict: &RpictActorHandle,
         linky: &LinkyActorHandle,
         datalogger: &DataLoggerHandle,
+        influxdb_enabled: bool,
+        hassmqtt_enabled: bool,
     ) -> Result<HmiActorHandle, Box<dyn Error>> {
         let settings = settings.clone();
         let rpict_rx = rpict.subscribe();
@@ -172,7 +184,7 @@ impl HmiActor {
         .subscribe();
         let display = DisplayActor::create()?;
         // pages declaration
-        let startup_page = StartupPage::new(env!("CARGO_PKG_VERSION"));
+        let startup_page = StartupPage::new(env!("CARGO_PKG_VERSION"), influxdb_enabled, hassmqtt_enabled);
         let rpict_page = RpictPage::new(settings.max_line_power_watts);
         let linky_page = LinkyPage::new();
         let carousel: Carrousel = vec![Page::Startup, Page::Rpict, Page::Linky]
