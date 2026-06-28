@@ -7,8 +7,8 @@ use DataLoggerMessage::*;
 
 use crate::actor::linky::{LinkyActorHandle, LinkyMessage};
 use crate::actor::rpict::{RpictActorHandle, RpictMessage};
-use crate::service::hassmqtt::{HassMqttClient, Publishable};
-use crate::service::influxdb::{InfluxDBClient, InfluxDbSerialize};
+use crate::service::hassmqtt::{HassMqttClient, ToHassMqtt};
+use crate::service::influxdb::{InfluxDBClient, ToInfluxDb};
 use crate::settings;
 
 #[derive(Clone, Debug)]
@@ -40,7 +40,7 @@ impl DataLoggerActor {
     /// failure of one never affects the other.
     async fn publish_to_sinks<P>(&mut self, frame: &P)
     where
-        P: InfluxDbSerialize + Publishable,
+        P: ToInfluxDb + ToHassMqtt,
     {
         if let Some(client) = &self.influxdb {
             let connected = client.publish(frame).await.is_ok();

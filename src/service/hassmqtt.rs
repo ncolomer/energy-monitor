@@ -83,7 +83,7 @@ impl Sensor {
 }
 
 /// A frame that can be published as a Home Assistant state message.
-pub trait Publishable {
+pub trait ToHassMqtt {
     fn to_state_message(&self) -> Message;
 }
 
@@ -105,7 +105,7 @@ impl RpictFrame {
     }
 }
 
-impl Publishable for RpictFrame {
+impl ToHassMqtt for RpictFrame {
     fn to_state_message(&self) -> Message {
         Message {
             topic: format!("{DEVICE_ID}/rpict"),
@@ -127,7 +127,7 @@ impl LinkyFrame {
     }
 }
 
-impl Publishable for LinkyFrame {
+impl ToHassMqtt for LinkyFrame {
     fn to_state_message(&self) -> Message {
         Message {
             topic: format!("{DEVICE_ID}/linky"),
@@ -220,7 +220,7 @@ impl HassMqttClient {
     /// Publishes a frame's state. Non-blocking: drops the message (logged) if the
     /// outgoing queue is full (e.g. while the broker is unreachable), so a dead
     /// broker never stalls the data logger.
-    pub fn publish(&self, payload: &impl Publishable) -> Result<(), HassMqttClientError> {
+    pub fn publish(&self, payload: &impl ToHassMqtt) -> Result<(), HassMqttClientError> {
         let Message { topic, payload } = payload.to_state_message();
         self.client.try_publish(topic, QoS::AtLeastOnce, false, payload).map_err(|e| {
             log::error!("Home Assistant MQTT publish error: {e:?}");

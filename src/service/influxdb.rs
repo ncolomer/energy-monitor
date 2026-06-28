@@ -25,7 +25,7 @@ impl InfluxDBClient {
         Ok(InfluxDBClient { client, settings })
     }
 
-    pub async fn publish(&self, payload: &impl InfluxDbSerialize) -> Result<(), InfluxDBClientError> {
+    pub async fn publish(&self, payload: &impl ToInfluxDb) -> Result<(), InfluxDBClientError> {
         // https://docs.influxdata.com/influxdb/v1.8/tools/api/#write-http-endpoint
         let write_url = format!("{}/write", self.settings.base_url());
         let request = self
@@ -46,12 +46,12 @@ impl InfluxDBClient {
     }
 }
 
-pub trait InfluxDbSerialize {
+pub trait ToInfluxDb {
     // https://docs.influxdata.com/influxdb/v1.8/write_protocols/line_protocol_reference/
     fn to_line_data(&self, prefix: &Option<String>) -> String;
 }
 
-impl InfluxDbSerialize for RpictFrame {
+impl ToInfluxDb for RpictFrame {
     fn to_line_data(&self, prefix: &Option<String>) -> String {
         let measurement = vec![prefix.clone(), Some("rpict".to_string())]
             .iter()
@@ -85,7 +85,7 @@ impl InfluxDbSerialize for RpictFrame {
     }
 }
 
-impl InfluxDbSerialize for LinkyFrame {
+impl ToInfluxDb for LinkyFrame {
     fn to_line_data(&self, prefix: &Option<String>) -> String {
         let measurement = vec![prefix.clone(), Some("linky".to_string())]
             .iter()
