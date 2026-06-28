@@ -7,6 +7,5 @@ hmi:
 serial:
   rpict: /dev/ttyAMA0
   linky: /dev/ttyUSB0
-# Both sinks are disabled by default; configure a block (file or APP__* env) to enable it.
 influxdb: null
 hassmqtt: null
