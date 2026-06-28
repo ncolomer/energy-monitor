@@ -27,4 +27,4 @@ rppal = "0.14.1"
 image = { version = "0.24.6", default-features = false, features = ["png"] }
 
 [package.metadata.cross.build]
-default-target = "arm-unknown-linux-gnueabi"
+default-target = "arm-unknown-linux-musleabi"
