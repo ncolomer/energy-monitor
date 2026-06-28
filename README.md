@@ -113,17 +113,17 @@ You can configure the application either by providing a YAML config file (see `-
 | `hmi.button_bcm_pin`       | `APP__HMI__BUTTON_BCM_PIN`       | Push button BCM pin number                       | `27`           |
 | `serial.rpict`             | `APP__SERIAL__RPICT`             | Serial port for RPICT                            | `/dev/ttyAMA0` |
 | `serial.linky`             | `APP__SERIAL__LINKY`             | Serial port for uTeleinfo (Linky)                | `/dev/ttyUSB0` |
-| `influxdb.host`            | `APP__INFLUXDB__HOST`            | InfluxDB host                                    | `localhost`    |
+| `influxdb.host`            | `APP__INFLUXDB__HOST`            | InfluxDB host                                    | _(disabled)_   |
 | `influxdb.port`            | `APP__INFLUXDB__PORT`            | InfluxDB port                                    | `8086`         |
 | `influxdb.database`        | `APP__INFLUXDB__DATABASE`        | InfluxDB database                                | `metrology`    |
-| `influxdb.prefix`          | `APP__INFLUXDB__PREFIX`          | Application's measures prefix                    | `energy`       |
+| `influxdb.prefix`          | `APP__INFLUXDB__PREFIX`          | Application's measures prefix                    | _(none)_       |
 | `hassmqtt.host`            | `APP__HASSMQTT__HOST`            | Home Assistant MQTT broker host                  | _(disabled)_   |
-| `hassmqtt.port`            | `APP__HASSMQTT__PORT`            | Home Assistant MQTT broker port                  | _(disabled)_   |
+| `hassmqtt.port`            | `APP__HASSMQTT__PORT`            | Home Assistant MQTT broker port                  | `1883`         |
 | `hassmqtt.username`        | `APP__HASSMQTT__USERNAME`        | MQTT username (optional)                         | _(none)_       |
 | `hassmqtt.password`        | `APP__HASSMQTT__PASSWORD`        | MQTT password (optional)                         | _(none)_       |
 | `hassmqtt.discovery_prefix`| `APP__HASSMQTT__DISCOVERY_PREFIX`| Home Assistant MQTT discovery prefix             | `homeassistant`|
 
-`influxdb` and `hassmqtt` are optional, **independent** sinks — enable either, both, or neither. Omit a block (or set it to `null`) to disable that sink.
+`influxdb` and `hassmqtt` are optional, **independent** sinks — both are **disabled by default**. Enable either, both, or neither by providing its block (a sink's nested fields, e.g. `influxdb.port`, only apply once its block is present).
 
 When `hassmqtt` is configured, the application registers its sensors in Home Assistant through [MQTT Discovery](https://www.home-assistant.io/integrations/mqtt/#mqtt-discovery) (no manual YAML needed). The Linky "heures creuses"/"heures pleines" indexes are exposed as `total_increasing` energy sensors, so they can be used directly in the [Energy dashboard](https://www.home-assistant.io/docs/energy/electricity-grid/). The current tariff period (`ptec`) is exposed as an `enum` sensor (`HC`/`HP`) to drive tariff-based automations.
 
