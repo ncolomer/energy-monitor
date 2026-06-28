@@ -13,12 +13,7 @@ use crate::settings;
 const DEVICE_ID: &str = "energy-monitor";
 const DEFAULT_DISCOVERY_PREFIX: &str = "homeassistant";
 const SUPPORT_URL: &str = "https://github.com/ncolomer/energy-monitor";
-// Seconds without an update after which Home Assistant marks a sensor unavailable.
-// Comfortably above the rpict/linky frame cadence (~1-2s) so it only triggers when a
-// source actually stops feeding, not on normal jitter.
 const EXPIRE_AFTER_SECS: u32 = 60;
-// Bigger than the largest announce burst (18 discovery + 1 availability) so the
-// event-loop task never blocks on its own request channel while (re)announcing.
 const CHANNEL_CAPACITY: usize = 64;
 
 #[derive(Debug, PartialEq)]
@@ -27,15 +22,14 @@ pub struct Message {
     pub payload: String,
 }
 
-/// Describes one Home Assistant sensor entity exposed through MQTT discovery.
 #[derive(Debug, PartialEq)]
 pub struct Sensor {
-    pub name: String,                             // JSON field of the state payload, e.g. "l1_real_power"
-    pub source: &'static str,                     // "rpict" | "linky"
-    pub device_class: &'static str,               // https://www.home-assistant.io/integrations/sensor/#device-class
-    pub state_class: Option<&'static str>,        // Some("measurement"|"total_increasing"); None for "enum" sensors
-    pub unit: Option<&'static str>,               // None => omit "unit_of_measurement" (e.g. power factor, enum)
-    pub options: Option<&'static [&'static str]>, // allowed values for an "enum" device_class sensor
+    pub name: String,
+    pub source: &'static str,
+    pub device_class: &'static str,
+    pub state_class: Option<&'static str>,
+    pub unit: Option<&'static str>,
+    pub options: Option<&'static [&'static str]>,
 }
 
 impl Sensor {
@@ -43,7 +37,6 @@ impl Sensor {
         format!("{DEVICE_ID}/{}", self.source)
     }
 
-    /// See https://www.home-assistant.io/integrations/mqtt/#mqtt-discovery
     fn to_discovery_message(&self, discovery_prefix: &str, availability_topic: &str) -> Message {
         let topic = format!(
             "{discovery_prefix}/sensor/{DEVICE_ID}/{source}_{name}/config",
@@ -90,7 +83,6 @@ pub trait ToHassMqtt {
 }
 
 impl RpictFrame {
-    // See documentation: http://lechacal.com/wiki/index.php/RPICT3V1
     pub fn sensors() -> Vec<Sensor> {
         let mut sensors = Vec::with_capacity(15);
         for phase in ["l1", "l2", "l3"] {
@@ -99,7 +91,6 @@ impl RpictFrame {
                 Sensor { name: format!("{phase}_apparent_power"), source: "rpict", device_class: "apparent_power", state_class: Some("measurement"), unit: Some("VA"), options: None },
                 Sensor { name: format!("{phase}_irms"), source: "rpict", device_class: "current", state_class: Some("measurement"), unit: Some("A"), options: None },
                 Sensor { name: format!("{phase}_vrms"), source: "rpict", device_class: "voltage", state_class: Some("measurement"), unit: Some("V"), options: None },
-                // lechacal reports power factor in the 0..1 range, so it carries no unit.
                 Sensor { name: format!("{phase}_power_factor"), source: "rpict", device_class: "power_factor", state_class: Some("measurement"), unit: None, options: None },
             ]);
         }
@@ -118,12 +109,9 @@ impl ToHassMqtt for RpictFrame {
 
 impl LinkyFrame {
     pub fn sensors() -> Vec<Sensor> {
-        // Cumulative meter indexes (Wh): total_increasing makes them usable in the
-        // Home Assistant Energy dashboard. https://www.home-assistant.io/docs/energy/electricity-grid/
         vec![
             Sensor { name: "hchc".to_string(), source: "linky", device_class: "energy", state_class: Some("total_increasing"), unit: Some("Wh"), options: None },
             Sensor { name: "hchp".to_string(), source: "linky", device_class: "energy", state_class: Some("total_increasing"), unit: Some("Wh"), options: None },
-            // Current tariff period, exposed as an enum sensor to drive tariff-based automations.
             Sensor { name: "ptec".to_string(), source: "linky", device_class: "enum", state_class: None, unit: None, options: Some(&["HC", "HP"]) },
         ]
     }
@@ -157,7 +145,6 @@ impl HassMqttClient {
         let availability_topic = format!("{DEVICE_ID}/availability");
         let status_topic = format!("{discovery_prefix}/status");
 
-        // Pre-render the discovery messages once; they are (re)announced on every connection.
         let discovery: Vec<Message> = RpictFrame::sensors()
             .iter()
             .chain(LinkyFrame::sensors().iter())
@@ -169,7 +156,6 @@ impl HassMqttClient {
         if let Some(username) = settings.username.clone() {
             mqtt_options.set_credentials(username, settings.password.clone().unwrap_or_default());
         }
-        // Last will: the broker marks us offline if the connection drops unexpectedly.
         mqtt_options.set_last_will(LastWill::new(availability_topic.clone(), "offline", QoS::AtLeastOnce, true));
 
         let (client, mut eventloop) = AsyncClient::new(mqtt_options, CHANNEL_CAPACITY);
@@ -183,8 +169,6 @@ impl HassMqttClient {
                     Ok(Event::Incoming(Packet::ConnAck(_))) => {
                         log::info!("Home Assistant MQTT connected");
                         task_connected.store(true, Ordering::Relaxed);
-                        // Re-announce on every (re)connection so HA restores entities and
-                        // we observe its birth message after a HA restart.
                         if let Err(e) = task_client.try_subscribe(status_topic.as_str(), QoS::AtLeastOnce) {
                             log::error!("Home Assistant status subscribe error: {e:?}");
                         }
@@ -202,7 +186,6 @@ impl HassMqttClient {
                             log::warn!("Home Assistant MQTT disconnected");
                         }
                         log::debug!("Home Assistant MQTT eventloop error: {e:?}");
-                        // rumqttc reconnects on the next poll; back off to avoid a busy loop.
                         tokio::time::sleep(Duration::from_secs(5)).await;
                     }
                 }
@@ -212,8 +195,6 @@ impl HassMqttClient {
         Ok(HassMqttClient { client, connected })
     }
 
-    /// Non-blocking: drops the message (logged) if the outgoing queue is full (e.g.
-    /// while the broker is unreachable), so a dead broker never stalls the data logger.
     pub fn publish(&self, payload: &impl ToHassMqtt) -> Result<(), HassMqttClientError> {
         let Message { topic, payload } = payload.to_state_message();
         self.client.try_publish(topic, QoS::AtLeastOnce, false, payload).map_err(|e| {
@@ -227,7 +208,6 @@ impl HassMqttClient {
     }
 }
 
-/// Uses `try_publish` so it never blocks the event loop that drains the queue.
 fn announce(client: &AsyncClient, discovery: &[Message], availability_topic: &str) {
     for Message { topic, payload } in discovery {
         if let Err(e) = client.try_publish(topic.as_str(), QoS::AtLeastOnce, true, payload.as_bytes()) {
@@ -327,12 +307,11 @@ mod tests {
     fn test_linky_ptec_is_enum_sensor() {
         // Given
         let ptec = LinkyFrame::sensors().into_iter().find(|s| s.name == "ptec").unwrap();
-        // Then the descriptor is a unit-less, state-class-less enum
+        // Then
         assert_eq!(ptec.device_class, "enum");
         assert_eq!(ptec.state_class, None);
         assert_eq!(ptec.unit, None);
         assert_eq!(ptec.options, Some(&["HC", "HP"][..]));
-        // And its discovery payload lists options while omitting state_class/unit_of_measurement
         let Message { payload, .. } = ptec.to_discovery_message("homeassistant", "energy-monitor/availability");
         let value: Value = serde_json::from_str(&payload).unwrap();
         assert_eq!(value["device_class"], "enum");

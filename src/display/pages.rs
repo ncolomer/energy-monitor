@@ -24,7 +24,6 @@ pub enum Page {
 pub struct StartupPage {
     is_rpict_connected: bool,
     is_linky_connected: bool,
-    // None means the sink is not configured and its icon is not drawn.
     influxdb: Option<bool>,
     hassmqtt: Option<bool>,
     version: String,
@@ -51,7 +50,6 @@ impl StartupPage {
     }
 
     pub fn influxdb_status(&mut self, is_connected: bool) {
-        // Keep None (disabled) untouched; only update when the sink is configured.
         self.influxdb = self.influxdb.map(|_| is_connected);
     }
 
@@ -86,7 +84,6 @@ impl Drawable for StartupPage {
         )
         .draw(target)?;
 
-        // Sources are always shown; a sink icon is added only when that sink is configured.
         let mut icons: Vec<&ImageRaw<'static, BinaryColor>> = Vec::new();
         icons.push(if self.is_rpict_connected { &*RPICT_ON } else { &*RPICT_OFF });
         icons.push(if self.is_linky_connected { &*LINKY_ON } else { &*LINKY_OFF });
@@ -263,7 +260,7 @@ mod tests {
     fn test_startup_page_new_with_sinks_disabled() {
         // When
         let actual = StartupPage::new("0.0.0", false, false);
-        // Then disabled sinks are hidden (None)
+        // Then
         assert!(
             matches!(actual, StartupPage { is_rpict_connected: false, is_linky_connected: false, influxdb: None, hassmqtt: None, version }
             if version == "0.0.0")
@@ -274,7 +271,7 @@ mod tests {
     fn test_startup_page_new_with_sinks_enabled() {
         // When
         let actual = StartupPage::new("0.0.0", true, true);
-        // Then enabled sinks start disconnected (Some(false)) so their icon shows OFF
+        // Then
         assert!(matches!(
             actual,
             StartupPage {
@@ -309,12 +306,12 @@ mod tests {
 
     #[test]
     fn test_startup_page_status_ignored_when_sink_disabled() {
-        // Given a page with both sinks disabled
+        // Given
         let mut actual = StartupPage::new("0.0.0", false, false);
-        // When status updates arrive anyway
+        // When
         actual.influxdb_status(true);
         actual.hassmqtt_status(true);
-        // Then the sinks stay hidden
+        // Then
         assert!(matches!(actual, StartupPage { influxdb: None, hassmqtt: None, .. }));
     }
 

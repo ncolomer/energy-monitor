@@ -35,9 +35,6 @@ pub struct DataLoggerHandle {
 }
 
 impl DataLoggerActor {
-    /// Publishes a frame to every configured sink and emits a status message
-    /// whenever a sink's connection state changes. Sinks are independent: a
-    /// failure of one never affects the other.
     async fn publish_to_sinks<P>(&mut self, frame: &P)
     where
         P: ToInfluxDb + ToHassMqtt,
@@ -51,7 +48,6 @@ impl DataLoggerActor {
             }
         }
         if let Some(client) = &self.hassmqtt {
-            // Non-blocking; connection truth comes from the MQTT event loop, not this call.
             let _ = client.publish(frame);
             let connected = client.is_connected();
             if connected != self.hassmqtt_connected {
