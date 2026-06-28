@@ -1,0 +1,370 @@
+use std::error::Error;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+use std::time::Duration;
+
+use rumqttc::{AsyncClient, Event, LastWill, MqttOptions, Packet, QoS};
+use serde_json::{json, Value};
+
+use crate::driver::linky::LinkyFrame;
+use crate::driver::rpict::RpictFrame;
+use crate::settings;
+
+const DEVICE_ID: &str = "energy-monitor";
+const DEFAULT_DISCOVERY_PREFIX: &str = "homeassistant";
+const SUPPORT_URL: &str = "https://github.com/ncolomer/energy-monitor";
+// Bigger than the largest announce burst (17 discovery + 1 availability) so the
+// event-loop task never blocks on its own request channel while (re)announcing.
+const CHANNEL_CAPACITY: usize = 64;
+
+/// A single MQTT message: the pure result of serializing a sensor config or a frame.
+#[derive(Debug, PartialEq)]
+pub struct Message {
+    pub topic: String,
+    pub payload: String,
+}
+
+/// Describes one Home Assistant sensor entity exposed through MQTT discovery.
+#[derive(Debug, PartialEq)]
+pub struct Sensor {
+    pub name: &'static str,         // JSON field of the state payload, e.g. "l1_real_power"
+    pub source: &'static str,       // "rpict" | "linky"
+    pub device_class: &'static str, // https://www.home-assistant.io/integrations/sensor/#device-class
+    pub state_class: &'static str,  // "measurement" | "total_increasing"
+    pub unit: Option<&'static str>, // None => omit "unit_of_measurement" (e.g. power factor)
+}
+
+impl Sensor {
+    fn state_topic(&self) -> String {
+        format!("{DEVICE_ID}/{}", self.source)
+    }
+
+    /// Builds the retained discovery (config) message for this sensor.
+    /// See https://www.home-assistant.io/integrations/mqtt/#mqtt-discovery
+    fn to_discovery_message(&self, discovery_prefix: &str, availability_topic: &str) -> Message {
+        let topic = format!(
+            "{discovery_prefix}/sensor/{DEVICE_ID}/{source}_{name}/config",
+            source = self.source,
+            name = self.name
+        );
+        let mut config = json!({
+            "name": format!("{} {}", self.source, self.name),
+            "unique_id": format!("{DEVICE_ID}_{}_{}", self.source, self.name),
+            "state_topic": self.state_topic(),
+            "value_template": format!("{{{{ value_json.{} }}}}", self.name),
+            "availability_topic": availability_topic,
+            "device_class": self.device_class,
+            "state_class": self.state_class,
+            "device": {
+                "identifiers": [DEVICE_ID],
+                "name": DEVICE_ID,
+                "manufacturer": "DIY",
+                "model": DEVICE_ID,
+                "sw_version": env!("CARGO_PKG_VERSION"),
+            },
+            "origin": {
+                "name": DEVICE_ID,
+                "sw_version": env!("CARGO_PKG_VERSION"),
+                "support_url": SUPPORT_URL,
+            },
+        });
+        if let Some(unit) = self.unit {
+            config["unit_of_measurement"] = Value::String(unit.to_string());
+        }
+        let payload = serde_json::to_string(&config).unwrap();
+        Message { topic, payload }
+    }
+}
+
+/// A frame that can be published as a Home Assistant state message.
+pub trait Publishable {
+    fn to_state_message(&self) -> Message;
+}
+
+impl RpictFrame {
+    // See documentation: http://lechacal.com/wiki/index.php/RPICT3V1
+    pub fn sensors() -> Vec<Sensor> {
+        let mut sensors = Vec::with_capacity(15);
+        for phase in ["l1", "l2", "l3"] {
+            sensors.extend([
+                Sensor { name: leak(format!("{phase}_real_power")), source: "rpict", device_class: "power", state_class: "measurement", unit: Some("W") },
+                Sensor { name: leak(format!("{phase}_apparent_power")), source: "rpict", device_class: "apparent_power", state_class: "measurement", unit: Some("VA") },
+                Sensor { name: leak(format!("{phase}_irms")), source: "rpict", device_class: "current", state_class: "measurement", unit: Some("A") },
+                Sensor { name: leak(format!("{phase}_vrms")), source: "rpict", device_class: "voltage", state_class: "measurement", unit: Some("V") },
+                // lechacal reports power factor in the 0..1 range, so it carries no unit.
+                Sensor { name: leak(format!("{phase}_power_factor")), source: "rpict", device_class: "power_factor", state_class: "measurement", unit: None },
+            ]);
+        }
+        sensors
+    }
+}
+
+impl Publishable for RpictFrame {
+    fn to_state_message(&self) -> Message {
+        Message {
+            topic: format!("{DEVICE_ID}/rpict"),
+            payload: serde_json::to_string(self).unwrap(),
+        }
+    }
+}
+
+impl LinkyFrame {
+    pub fn sensors() -> Vec<Sensor> {
+        // Cumulative meter indexes (Wh): total_increasing makes them usable in the
+        // Home Assistant Energy dashboard. https://www.home-assistant.io/docs/energy/electricity-grid/
+        vec![
+            Sensor { name: "hchc", source: "linky", device_class: "energy", state_class: "total_increasing", unit: Some("Wh") },
+            Sensor { name: "hchp", source: "linky", device_class: "energy", state_class: "total_increasing", unit: Some("Wh") },
+        ]
+    }
+}
+
+impl Publishable for LinkyFrame {
+    fn to_state_message(&self) -> Message {
+        Message {
+            topic: format!("{DEVICE_ID}/linky"),
+            payload: serde_json::to_string(self).unwrap(),
+        }
+    }
+}
+
+/// Leaks a runtime-built sensor name into a `&'static str`. Sensor lists are built
+/// once at startup, so the (tiny, bounded) leak is acceptable and keeps `Sensor`
+/// cheap to copy and compare.
+fn leak(s: String) -> &'static str {
+    Box::leak(s.into_boxed_str())
+}
+
+#[derive(Debug)]
+pub enum HassMqttClientError {
+    Publish,
+}
+
+pub struct HassMqttClient {
+    client: AsyncClient,
+    connected: Arc<AtomicBool>,
+}
+
+impl HassMqttClient {
+    pub fn new(settings: &settings::HassMqtt) -> Result<HassMqttClient, Box<dyn Error>> {
+        let discovery_prefix = settings
+            .discovery_prefix
+            .clone()
+            .unwrap_or_else(|| DEFAULT_DISCOVERY_PREFIX.to_string());
+        let availability_topic = format!("{DEVICE_ID}/availability");
+        let status_topic = format!("{discovery_prefix}/status");
+
+        // Pre-render the discovery messages once; they are (re)announced on every connection.
+        let discovery: Vec<Message> = RpictFrame::sensors()
+            .iter()
+            .chain(LinkyFrame::sensors().iter())
+            .map(|sensor| sensor.to_discovery_message(&discovery_prefix, &availability_topic))
+            .collect();
+
+        let mut mqtt_options = MqttOptions::new(DEVICE_ID, settings.host.clone(), settings.port);
+        mqtt_options.set_keep_alive(Duration::from_secs(60));
+        if let Some(username) = settings.username.clone() {
+            mqtt_options.set_credentials(username, settings.password.clone().unwrap_or_default());
+        }
+        // Last will: the broker marks us offline if the connection drops unexpectedly.
+        mqtt_options.set_last_will(LastWill::new(availability_topic.clone(), "offline", QoS::AtLeastOnce, true));
+
+        let (client, mut eventloop) = AsyncClient::new(mqtt_options, CHANNEL_CAPACITY);
+        let connected = Arc::new(AtomicBool::new(false));
+
+        let task_client = client.clone();
+        let task_connected = connected.clone();
+        tokio::task::spawn(async move {
+            loop {
+                match eventloop.poll().await {
+                    Ok(Event::Incoming(Packet::ConnAck(_))) => {
+                        log::info!("Home Assistant MQTT connected");
+                        task_connected.store(true, Ordering::Relaxed);
+                        // Re-announce on every (re)connection so HA restores entities and
+                        // we observe its birth message after a HA restart.
+                        if let Err(e) = task_client.try_subscribe(status_topic.as_str(), QoS::AtLeastOnce) {
+                            log::error!("Home Assistant status subscribe error: {e:?}");
+                        }
+                        announce(&task_client, &discovery, &availability_topic);
+                    }
+                    Ok(Event::Incoming(Packet::Publish(publish)))
+                        if publish.topic == status_topic && publish.payload.as_ref() == b"online" =>
+                    {
+                        log::info!("Home Assistant birth message received, re-announcing entities");
+                        announce(&task_client, &discovery, &availability_topic);
+                    }
+                    Ok(_) => {}
+                    Err(e) => {
+                        if task_connected.swap(false, Ordering::Relaxed) {
+                            log::warn!("Home Assistant MQTT disconnected");
+                        }
+                        log::debug!("Home Assistant MQTT eventloop error: {e:?}");
+                        // rumqttc reconnects on the next poll; back off to avoid a busy loop.
+                        tokio::time::sleep(Duration::from_secs(5)).await;
+                    }
+                }
+            }
+        });
+
+        Ok(HassMqttClient { client, connected })
+    }
+
+    /// Publishes a frame's state. Non-blocking: drops the message (logged) if the
+    /// outgoing queue is full (e.g. while the broker is unreachable), so a dead
+    /// broker never stalls the data logger.
+    pub fn publish(&self, payload: &impl Publishable) -> Result<(), HassMqttClientError> {
+        let Message { topic, payload } = payload.to_state_message();
+        self.client.try_publish(topic, QoS::AtLeastOnce, false, payload).map_err(|e| {
+            log::error!("Home Assistant MQTT publish error: {e:?}");
+            HassMqttClientError::Publish
+        })
+    }
+
+    pub fn is_connected(&self) -> bool {
+        self.connected.load(Ordering::Relaxed)
+    }
+}
+
+/// Publishes all retained discovery configs followed by the `online` availability.
+/// Uses `try_publish` so it never blocks the event loop that drains the queue.
+fn announce(client: &AsyncClient, discovery: &[Message], availability_topic: &str) {
+    for Message { topic, payload } in discovery {
+        if let Err(e) = client.try_publish(topic.as_str(), QoS::AtLeastOnce, true, payload.as_bytes()) {
+            log::error!("Home Assistant discovery publish error: {e:?}");
+        }
+    }
+    if let Err(e) = client.try_publish(availability_topic, QoS::AtLeastOnce, true, "online") {
+        log::error!("Home Assistant availability publish error: {e:?}");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use chrono::{DateTime, Utc};
+
+    use super::*;
+
+    fn timestamp() -> DateTime<Utc> {
+        DateTime::parse_from_rfc3339("2023-07-09T14:01:10Z")
+            .unwrap()
+            .with_timezone(&Utc)
+    }
+
+    #[test]
+    fn test_sensor_to_discovery_message() {
+        // Given
+        let sensor = Sensor {
+            name: "l1_real_power",
+            source: "rpict",
+            device_class: "power",
+            state_class: "measurement",
+            unit: Some("W"),
+        };
+        // When
+        let Message { topic, payload } = sensor.to_discovery_message("homeassistant", "energy-monitor/availability");
+        // Then
+        assert_eq!(topic, "homeassistant/sensor/energy-monitor/rpict_l1_real_power/config");
+        let value: Value = serde_json::from_str(&payload).unwrap();
+        assert_eq!(value["name"], "rpict l1_real_power");
+        assert_eq!(value["unique_id"], "energy-monitor_rpict_l1_real_power");
+        assert_eq!(value["state_topic"], "energy-monitor/rpict");
+        assert_eq!(value["value_template"], "{{ value_json.l1_real_power }}");
+        assert_eq!(value["availability_topic"], "energy-monitor/availability");
+        assert_eq!(value["device_class"], "power");
+        assert_eq!(value["state_class"], "measurement");
+        assert_eq!(value["unit_of_measurement"], "W");
+        assert_eq!(value["device"]["identifiers"][0], "energy-monitor");
+        assert_eq!(value["device"]["sw_version"], env!("CARGO_PKG_VERSION"));
+        assert_eq!(value["origin"]["support_url"], SUPPORT_URL);
+    }
+
+    #[test]
+    fn test_sensor_without_unit_omits_unit_of_measurement() {
+        // Given
+        let sensor = Sensor {
+            name: "l1_power_factor",
+            source: "rpict",
+            device_class: "power_factor",
+            state_class: "measurement",
+            unit: None,
+        };
+        // When
+        let Message { payload, .. } = sensor.to_discovery_message("homeassistant", "energy-monitor/availability");
+        // Then
+        let value: Value = serde_json::from_str(&payload).unwrap();
+        assert!(value.get("unit_of_measurement").is_none());
+    }
+
+    #[test]
+    fn test_rpict_sensors() {
+        // When
+        let sensors = RpictFrame::sensors();
+        // Then
+        assert_eq!(sensors.len(), 15);
+        assert!(sensors.iter().any(|s| s.name == "l1_real_power" && s.device_class == "power" && s.unit == Some("W")));
+        assert!(sensors.iter().any(|s| s.name == "l3_power_factor" && s.device_class == "power_factor" && s.unit.is_none()));
+    }
+
+    #[test]
+    fn test_linky_sensors_are_energy_total_increasing() {
+        // When
+        let sensors = LinkyFrame::sensors();
+        // Then
+        assert_eq!(sensors.len(), 2);
+        assert!(sensors.iter().all(|s| {
+            s.source == "linky" && s.device_class == "energy" && s.state_class == "total_increasing" && s.unit == Some("Wh")
+        }));
+    }
+
+    #[test]
+    fn test_rpictframe_to_state_message() {
+        // Given
+        let frame = RpictFrame {
+            node_id: 11,
+            l1_real_power: -82.96,
+            l1_apparent_power: 422.95,
+            l1_irms: 1.64,
+            l1_vrms: 257.65,
+            l1_power_factor: 0.194,
+            l2_real_power: -50.23,
+            l2_apparent_power: 144.52,
+            l2_irms: 0.56,
+            l2_vrms: 259.95,
+            l2_power_factor: 0.346,
+            l3_real_power: 24.55,
+            l3_apparent_power: 47.17,
+            l3_irms: 0.18,
+            l3_vrms: 259.70,
+            l3_power_factor: 0.509,
+            timestamp: timestamp(),
+        };
+        // When
+        let Message { topic, payload } = frame.to_state_message();
+        // Then
+        assert_eq!(topic, "energy-monitor/rpict");
+        assert_eq!(
+            payload,
+            r#"{"node_id":11,"l1_real_power":-82.96,"l1_apparent_power":422.95,"l1_irms":1.64,"l1_vrms":257.65,"l1_power_factor":0.194,"l2_real_power":-50.23,"l2_apparent_power":144.52,"l2_irms":0.56,"l2_vrms":259.95,"l2_power_factor":0.346,"l3_real_power":24.55,"l3_apparent_power":47.17,"l3_irms":0.18,"l3_vrms":259.7,"l3_power_factor":0.509,"timestamp":"2023-07-09T14:01:10Z"}"#
+        );
+    }
+
+    #[test]
+    fn test_linkyframe_to_state_message() {
+        // Given
+        let frame = LinkyFrame {
+            adco: "041876097767".to_string(),
+            ptec: "HP".to_string(),
+            hchc: 19_650_909,
+            hchp: 43_280_553,
+            timestamp: timestamp(),
+        };
+        // When
+        let Message { topic, payload } = frame.to_state_message();
+        // Then
+        assert_eq!(topic, "energy-monitor/linky");
+        assert_eq!(
+            payload,
+            r#"{"adco":"041876097767","ptec":"HP","hchc":19650909,"hchp":43280553,"timestamp":"2023-07-09T14:01:10Z"}"#
+        );
+    }
+}

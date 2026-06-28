@@ -12,3 +12,4 @@ influxdb:
   port: 8086
   database: metrology
   prefix: energy
+hassmqtt: null
