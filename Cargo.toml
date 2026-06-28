@@ -1,6 +1,7 @@
 [package]
 name = "energy-monitor"
 description = "A tool to measure, display and store electrical consumption metrics."
+repository = "https://github.com/ncolomer/energy-monitor"
 version = "0.1.0"
 edition = "2021"
 

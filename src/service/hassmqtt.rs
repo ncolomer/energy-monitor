@@ -12,7 +12,7 @@ use crate::settings;
 
 const DEVICE_ID: &str = "energy-monitor";
 const DEFAULT_DISCOVERY_PREFIX: &str = "homeassistant";
-const SUPPORT_URL: &str = "https://github.com/ncolomer/energy-monitor";
+const SUPPORT_URL: &str = env!("CARGO_PKG_REPOSITORY");
 const EXPIRE_AFTER_SECS: u32 = 60;
 const CHANNEL_CAPACITY: usize = 64;
 
