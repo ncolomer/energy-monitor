@@ -151,9 +151,8 @@ impl HassMqttClient {
             .collect();
 
         let mut mqtt_options = MqttOptions::new(DEVICE_ID, settings.host.clone(), settings.port);
-        mqtt_options.set_keep_alive(Duration::from_secs(60));
-        if let Some(username) = settings.username.clone() {
-            mqtt_options.set_credentials(username, settings.password.clone().unwrap_or_default());
+        if let (Some(username), Some(password)) = (settings.username.clone(), settings.password.clone()) {
+            mqtt_options.set_credentials(username, password);
         }
         mqtt_options.set_last_will(LastWill::new(availability_topic.clone(), "offline", QoS::AtLeastOnce, true));
 
