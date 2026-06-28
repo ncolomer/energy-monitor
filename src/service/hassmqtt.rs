@@ -12,7 +12,6 @@ use crate::settings;
 
 const DEVICE_ID: &str = "energy-monitor";
 const DEFAULT_DISCOVERY_PREFIX: &str = "homeassistant";
-const SUPPORT_URL: &str = env!("CARGO_PKG_REPOSITORY");
 const EXPIRE_AFTER_SECS: u32 = 60;
 const CHANNEL_CAPACITY: usize = 64;
 
@@ -61,7 +60,7 @@ impl Sensor {
             "origin": {
                 "name": DEVICE_ID,
                 "sw_version": env!("CARGO_PKG_VERSION"),
-                "support_url": SUPPORT_URL,
+                "support_url": env!("CARGO_PKG_REPOSITORY"),
             },
         });
         if let Some(state_class) = self.state_class {
@@ -258,7 +257,7 @@ mod tests {
         assert_eq!(value["expire_after"], 60);
         assert_eq!(value["device"]["identifiers"][0], "energy-monitor");
         assert_eq!(value["device"]["sw_version"], env!("CARGO_PKG_VERSION"));
-        assert_eq!(value["origin"]["support_url"], SUPPORT_URL);
+        assert_eq!(value["origin"]["support_url"], env!("CARGO_PKG_REPOSITORY"));
     }
 
     #[test]
