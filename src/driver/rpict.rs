@@ -6,10 +6,11 @@ use std::time::Duration;
 
 use chrono::{DateTime, Utc};
 use rppal::uart::{Parity, Uart};
+use serde::Serialize;
 
 use crate::driver::error::ParseError;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct RpictFrame {
     pub node_id: u8,
     pub l1_real_power: f32,

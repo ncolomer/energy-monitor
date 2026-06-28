@@ -7,8 +7,5 @@ hmi:
 serial:
   rpict: /dev/ttyAMA0
   linky: /dev/ttyUSB0
-influxdb:
-  host: localhost
-  port: 8086
-  database: metrology
-  prefix: energy
+influxdb: null
+hassmqtt: null

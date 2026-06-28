@@ -16,7 +16,7 @@ jobs:
       - run: rustup set auto-self-update disable && rustup toolchain install stable --profile minimal
       - uses: Swatinem/rust-cache@v2
         with: { shared-key: build-cache }
-      - run: rustup target add arm-unknown-linux-gnueabi && cargo install cross
+      - run: rustup target add arm-unknown-linux-musleabi && cargo install cross
       - name: Lint
         run: cross clippy
   check:
@@ -27,7 +27,7 @@ jobs:
       - run: rustup set auto-self-update disable && rustup toolchain install stable --profile minimal
       - uses: Swatinem/rust-cache@v2
         with: { shared-key: build-cache }
-      - run: rustup target add arm-unknown-linux-gnueabi && cargo install cross
+      - run: rustup target add arm-unknown-linux-musleabi && cargo install cross
       - name: Check
         run: cross check
   test:
@@ -39,6 +39,6 @@ jobs:
       - run: rustup set auto-self-update disable && rustup toolchain install stable --profile minimal
       - uses: Swatinem/rust-cache@v2
         with: { shared-key: build-cache }
-      - run: rustup target add arm-unknown-linux-gnueabi && cargo install cross
+      - run: rustup target add arm-unknown-linux-musleabi && cargo install cross
       - name: Test
         run: cross test

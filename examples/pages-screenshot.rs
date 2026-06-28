@@ -78,10 +78,11 @@ fn main() {
     // Save pages
     let mut display = PngTarget::new(Size::new(DISPLAY_WIDTH as u32, DISPLAY_HEIGHT as u32));
 
-    let mut page = StartupPage::new("1.2.3");
+    let mut page = StartupPage::new("1.2.3", true, true);
     page.rpict_status(true);
     page.linky_status(true);
     page.influxdb_status(true);
+    page.hassmqtt_status(true);
     display.save_page(&page, Path::new("page-startup.png"));
 
     let mut page = RpictPage::new(8000.0);
@@ -102,4 +103,6 @@ fn main() {
     display.save_image(&LINKY_OFF, Path::new("icon-linky-off.png"));
     display.save_image(&INFLUXDB_ON, Path::new("icon-influxdb-on.png"));
     display.save_image(&INFLUXDB_OFF, Path::new("icon-influxdb-off.png"));
+    display.save_image(&HASS_ON, Path::new("icon-hass-on.png"));
+    display.save_image(&HASS_OFF, Path::new("icon-hass-off.png"));
 }

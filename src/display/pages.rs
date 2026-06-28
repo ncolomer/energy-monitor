@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use embedded_graphics::{
-    image::Image,
+    image::{Image, ImageRaw},
     mono_font::{ascii::*, MonoTextStyle},
     pixelcolor::BinaryColor,
     prelude::*,
@@ -24,17 +24,19 @@ pub enum Page {
 pub struct StartupPage {
     is_rpict_connected: bool,
     is_linky_connected: bool,
-    is_influxdb_connected: bool,
+    influxdb: Option<bool>,
+    hassmqtt: Option<bool>,
     version: String,
 }
 
 impl StartupPage {
-    pub fn new(version: &str) -> Self {
+    pub fn new(version: &str, influxdb_enabled: bool, hassmqtt_enabled: bool) -> Self {
         let version = version.to_string();
         Self {
             is_rpict_connected: false,
             is_linky_connected: false,
-            is_influxdb_connected: false,
+            influxdb: influxdb_enabled.then_some(false),
+            hassmqtt: hassmqtt_enabled.then_some(false),
             version,
         }
     }
@@ -48,7 +50,11 @@ impl StartupPage {
     }
 
     pub fn influxdb_status(&mut self, is_connected: bool) {
-        self.is_influxdb_connected = is_connected;
+        self.influxdb = self.influxdb.map(|_| is_connected);
+    }
+
+    pub fn hassmqtt_status(&mut self, is_connected: bool) {
+        self.hassmqtt = self.hassmqtt.map(|_| is_connected);
     }
 }
 
@@ -78,26 +84,18 @@ impl Drawable for StartupPage {
         )
         .draw(target)?;
 
-        let rpict_icon = if self.is_rpict_connected {
-            &*RPICT_ON
-        } else {
-            &*RPICT_OFF
-        };
-        Image::new(rpict_icon, Point::new(20, 20)).draw(target)?;
-
-        let linky_icon = if self.is_linky_connected {
-            &*LINKY_ON
-        } else {
-            &*LINKY_OFF
-        };
-        Image::new(linky_icon, Point::new(30, 20)).draw(target)?;
-
-        let influxdb_icon = if self.is_influxdb_connected {
-            &*INFLUXDB_ON
-        } else {
-            &*INFLUXDB_OFF
-        };
-        Image::new(influxdb_icon, Point::new(40, 20)).draw(target)?;
+        let mut icons: Vec<&ImageRaw<'static, BinaryColor>> = Vec::new();
+        icons.push(if self.is_rpict_connected { &*RPICT_ON } else { &*RPICT_OFF });
+        icons.push(if self.is_linky_connected { &*LINKY_ON } else { &*LINKY_OFF });
+        if let Some(connected) = self.influxdb {
+            icons.push(if connected { &*INFLUXDB_ON } else { &*INFLUXDB_OFF });
+        }
+        if let Some(connected) = self.hassmqtt {
+            icons.push(if connected { &*HASS_ON } else { &*HASS_OFF });
+        }
+        for (i, icon) in icons.into_iter().enumerate() {
+            Image::new(icon, Point::new(20 + 10 * i as i32, 20)).draw(target)?;
+        }
 
         Text::with_alignment(
             &format!("v{}", self.version),
@@ -259,34 +257,62 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_startup_page_new() {
+    fn test_startup_page_new_with_sinks_disabled() {
         // When
-        let actual = StartupPage::new("0.0.0");
+        let actual = StartupPage::new("0.0.0", false, false);
         // Then
         assert!(
-            matches!(actual, StartupPage { is_rpict_connected: false, is_linky_connected: false, is_influxdb_connected: false, version }
+            matches!(actual, StartupPage { is_rpict_connected: false, is_linky_connected: false, influxdb: None, hassmqtt: None, version }
             if version == "0.0.0")
         );
     }
 
     #[test]
+    fn test_startup_page_new_with_sinks_enabled() {
+        // When
+        let actual = StartupPage::new("0.0.0", true, true);
+        // Then
+        assert!(matches!(
+            actual,
+            StartupPage {
+                influxdb: Some(false),
+                hassmqtt: Some(false),
+                ..
+            }
+        ));
+    }
+
+    #[test]
     fn test_startup_page_update() {
         // Given
-        let mut actual = StartupPage::new("0.0.0");
+        let mut actual = StartupPage::new("0.0.0", true, true);
         // When
         actual.rpict_status(true);
         actual.linky_status(true);
         actual.influxdb_status(true);
+        actual.hassmqtt_status(true);
         // Then
         assert!(matches!(
             actual,
             StartupPage {
                 is_rpict_connected: true,
                 is_linky_connected: true,
-                is_influxdb_connected: true,
+                influxdb: Some(true),
+                hassmqtt: Some(true),
                 ..
             }
         ));
+    }
+
+    #[test]
+    fn test_startup_page_status_ignored_when_sink_disabled() {
+        // Given
+        let mut actual = StartupPage::new("0.0.0", false, false);
+        // When
+        actual.influxdb_status(true);
+        actual.hassmqtt_status(true);
+        // Then
+        assert!(matches!(actual, StartupPage { influxdb: None, hassmqtt: None, .. }));
     }
 
     #[test]

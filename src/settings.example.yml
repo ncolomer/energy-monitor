@@ -12,3 +12,9 @@ influxdb:
   port: 8086
   database: metrology
   prefix: energy
+hassmqtt:
+  host: localhost
+  port: 1883
+  # username: my-user
+  # password: my-pass
+  # discovery_prefix: homeassistant

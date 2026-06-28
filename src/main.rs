@@ -29,8 +29,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let rpict = RpictActor::create(&settings.serial.rpict);
     let linky = LinkyActor::create(&settings.serial.linky);
-    let datalogger = DataLoggerActor::create(&settings.influxdb, &rpict, &linky)?;
-    let hmi = HmiActor::create(&settings.hmi, &rpict, &linky, &datalogger)?;
+    let datalogger = DataLoggerActor::create(&settings.influxdb, &settings.hassmqtt, &rpict, &linky)?;
+    let hmi = HmiActor::create(
+        &settings.hmi,
+        &rpict,
+        &linky,
+        &datalogger,
+        settings.influxdb.is_some(),
+        settings.hassmqtt.is_some(),
+    )?;
     log::info!("energy-monitor started");
 
     let _ = signal::ctrl_c().await;

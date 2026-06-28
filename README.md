@@ -6,7 +6,7 @@
 
 > “You can't improve what you don't measure”
 
-This project is a DIY module + a [Rust](https://www.rust-lang.org/) application that aims at measuring grid consumption metrics, display collected values on an OLED display, and send them to an external InfluxDB database for storage.
+This project is a DIY module + a [Rust](https://www.rust-lang.org/) application that aims at measuring grid consumption metrics, display collected values on an OLED display, and send them to an external InfluxDB database and/or [Home Assistant](https://www.home-assistant.io/) (over MQTT) for storage and monitoring.
 
 The module was designed to fit any European-standard distribution boards (same form factor as a circuit breaker) and has 90mm (5-module) width.
 It does not collect data directly but rather fetches metrics from [Lechacal](http://lechacal.com/)'s [RPICT](http://lechacal.com/wiki/index.php?title=Raspberrypi_Current_and_Temperature_Sensor_Adaptor) module and Enedis [Linky](https://fr.wikipedia.org/wiki/Linky) electric meter (France national power provider).
@@ -39,18 +39,20 @@ The user interface is composed of several pages that can be cycled using the pus
 
 #### Startup screen
 
-> <img height="96" alt="startup screen" src="https://raw.githubusercontent.com/ncolomer/energy-monitor/6710a5a/docs/images/page-startup.png">
+> <img height="96" alt="startup screen" src="https://raw.githubusercontent.com/ncolomer/energy-monitor/main/docs/images/page-startup.png">
 
 This screen displays the project logo, connection statuses and the current application version.
 It is shown at application startup and also belongs to the page carousel (last position).
 
-Connection statuses are:
+Connection statuses are shown only for configured components (sources are always shown):
 - <img height="16" alt="RPICT" src="https://raw.githubusercontent.com/ncolomer/energy-monitor/6710a5a/docs/images/icon-rpict-on.png">
   RPICT status, white square means connected.
 - <img height="16" alt="Linky" src="https://raw.githubusercontent.com/ncolomer/energy-monitor/6710a5a/docs/images/icon-linky-on.png">
   Linky status, white square means connected.
 - <img height="16" alt="InfluxDB" src="https://raw.githubusercontent.com/ncolomer/energy-monitor/6710a5a/docs/images/icon-influxdb-on.png">
   InfluxDB status, white square means connected.
+- <img height="16" alt="Home Assistant" src="https://raw.githubusercontent.com/ncolomer/energy-monitor/main/docs/images/icon-hass-on.png">
+  Home Assistant (MQTT) status, white square means connected.
 
 #### Instantaneous metrics screen (RPICT)
 
@@ -111,10 +113,19 @@ You can configure the application either by providing a YAML config file (see `-
 | `hmi.button_bcm_pin`       | `APP__HMI__BUTTON_BCM_PIN`       | Push button BCM pin number                       | `27`           |
 | `serial.rpict`             | `APP__SERIAL__RPICT`             | Serial port for RPICT                            | `/dev/ttyAMA0` |
 | `serial.linky`             | `APP__SERIAL__LINKY`             | Serial port for uTeleinfo (Linky)                | `/dev/ttyUSB0` |
-| `influxdb.host`            | `APP__INFLUXDB__HOST`            | InfluxDB host                                    | `localhost`    |
+| `influxdb.host`            | `APP__INFLUXDB__HOST`            | InfluxDB host                                    | _(disabled)_   |
 | `influxdb.port`            | `APP__INFLUXDB__PORT`            | InfluxDB port                                    | `8086`         |
 | `influxdb.database`        | `APP__INFLUXDB__DATABASE`        | InfluxDB database                                | `metrology`    |
-| `influxdb.prefix`          | `APP__INFLUXDB__PREFIX`          | Application's measures prefix                    | `energy`       |
+| `influxdb.prefix`          | `APP__INFLUXDB__PREFIX`          | Application's measures prefix                    | _(none)_       |
+| `hassmqtt.host`            | `APP__HASSMQTT__HOST`            | Home Assistant MQTT broker host                  | _(disabled)_   |
+| `hassmqtt.port`            | `APP__HASSMQTT__PORT`            | Home Assistant MQTT broker port                  | `1883`         |
+| `hassmqtt.username`        | `APP__HASSMQTT__USERNAME`        | MQTT username (optional)                         | _(none)_       |
+| `hassmqtt.password`        | `APP__HASSMQTT__PASSWORD`        | MQTT password (optional)                         | _(none)_       |
+| `hassmqtt.discovery_prefix`| `APP__HASSMQTT__DISCOVERY_PREFIX`| Home Assistant MQTT discovery prefix             | `homeassistant`|
+
+`influxdb` and `hassmqtt` are optional, **independent** sinks — both are **disabled by default**. Enable either, both, or neither by providing its block (a sink's nested fields, e.g. `influxdb.port`, only apply once its block is present).
+
+When `hassmqtt` is configured, the application registers its sensors in Home Assistant through [MQTT Discovery](https://www.home-assistant.io/integrations/mqtt/#mqtt-discovery) (no manual YAML needed). The Linky "heures creuses"/"heures pleines" indexes are exposed as `total_increasing` energy sensors, so they can be used directly in the [Energy dashboard](https://www.home-assistant.io/docs/energy/electricity-grid/). The current tariff period (`ptec`) is exposed as an `enum` sensor (`HC`/`HP`) to drive tariff-based automations.
 
 ## Hardware
 

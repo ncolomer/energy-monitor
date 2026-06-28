@@ -80,4 +80,30 @@ lazy_static! {
         ],
         8
     );
+    pub static ref HASS_OFF: ImageRaw<'static, BinaryColor> = ImageRaw::<BinaryColor>::new(
+        &[
+            0b0000_0000,
+            0b0001_1000,
+            0b0011_1100,
+            0b0111_1110,
+            0b0111_1110,
+            0b0110_0110,
+            0b0110_0110,
+            0b0000_0000,
+        ],
+        8
+    );
+    pub static ref HASS_ON: ImageRaw<'static, BinaryColor> = ImageRaw::<BinaryColor>::new(
+        &[
+            0b1111_1111,
+            0b1110_0111,
+            0b1100_0011,
+            0b1000_0001,
+            0b1000_0001,
+            0b1001_1001,
+            0b1001_1001,
+            0b1111_1111,
+        ],
+        8
+    );
 }

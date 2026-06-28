@@ -36,11 +36,22 @@ impl InfluxDB {
 
 #[derive(Debug, Deserialize, Clone)]
 #[allow(unused)]
+pub struct HassMqtt {
+    pub host: String,
+    pub port: u16,
+    pub username: Option<String>,
+    pub password: Option<String>,
+    pub discovery_prefix: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[allow(unused)]
 pub struct Settings {
     pub log_level: String,
     pub hmi: Hmi,
     pub serial: Serial,
     pub influxdb: Option<InfluxDB>,
+    pub hassmqtt: Option<HassMqtt>,
 }
 
 impl Settings {
@@ -73,5 +84,6 @@ mod tests {
         let example_settings = include_str!("settings.example.yml").to_string();
         let settings = Settings::new(Some(example_settings)).unwrap();
         assert!(settings.influxdb.is_some());
+        assert!(settings.hassmqtt.is_some());
     }
 }
