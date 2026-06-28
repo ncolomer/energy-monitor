@@ -125,7 +125,7 @@ You can configure the application either by providing a YAML config file (see `-
 
 `influxdb` and `hassmqtt` are optional, **independent** sinks — enable either, both, or neither. Omit a block (or set it to `null`) to disable that sink.
 
-When `hassmqtt` is configured, the application registers its sensors in Home Assistant through [MQTT Discovery](https://www.home-assistant.io/integrations/mqtt/#mqtt-discovery) (no manual YAML needed). The Linky "heures creuses"/"heures pleines" indexes are exposed as `total_increasing` energy sensors, so they can be used directly in the [Energy dashboard](https://www.home-assistant.io/docs/energy/electricity-grid/).
+When `hassmqtt` is configured, the application registers its sensors in Home Assistant through [MQTT Discovery](https://www.home-assistant.io/integrations/mqtt/#mqtt-discovery) (no manual YAML needed). The Linky "heures creuses"/"heures pleines" indexes are exposed as `total_increasing` energy sensors, so they can be used directly in the [Energy dashboard](https://www.home-assistant.io/docs/energy/electricity-grid/). The current tariff period (`ptec`) is exposed as an `enum` sensor (`HC`/`HP`) to drive tariff-based automations.
 
 ## Hardware
 

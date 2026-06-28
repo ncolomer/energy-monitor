@@ -27,11 +27,12 @@ pub struct Message {
 /// Describes one Home Assistant sensor entity exposed through MQTT discovery.
 #[derive(Debug, PartialEq)]
 pub struct Sensor {
-    pub name: &'static str,         // JSON field of the state payload, e.g. "l1_real_power"
-    pub source: &'static str,       // "rpict" | "linky"
-    pub device_class: &'static str, // https://www.home-assistant.io/integrations/sensor/#device-class
-    pub state_class: &'static str,  // "measurement" | "total_increasing"
-    pub unit: Option<&'static str>, // None => omit "unit_of_measurement" (e.g. power factor)
+    pub name: &'static str,                       // JSON field of the state payload, e.g. "l1_real_power"
+    pub source: &'static str,                     // "rpict" | "linky"
+    pub device_class: &'static str,               // https://www.home-assistant.io/integrations/sensor/#device-class
+    pub state_class: Option<&'static str>,        // Some("measurement"|"total_increasing"); None for "enum" sensors
+    pub unit: Option<&'static str>,               // None => omit "unit_of_measurement" (e.g. power factor, enum)
+    pub options: Option<&'static [&'static str]>, // allowed values for an "enum" device_class sensor
 }
 
 impl Sensor {
@@ -54,7 +55,6 @@ impl Sensor {
             "value_template": format!("{{{{ value_json.{} }}}}", self.name),
             "availability_topic": availability_topic,
             "device_class": self.device_class,
-            "state_class": self.state_class,
             "device": {
                 "identifiers": [DEVICE_ID],
                 "name": DEVICE_ID,
@@ -68,8 +68,14 @@ impl Sensor {
                 "support_url": SUPPORT_URL,
             },
         });
+        if let Some(state_class) = self.state_class {
+            config["state_class"] = Value::String(state_class.to_string());
+        }
         if let Some(unit) = self.unit {
             config["unit_of_measurement"] = Value::String(unit.to_string());
+        }
+        if let Some(options) = self.options {
+            config["options"] = Value::Array(options.iter().map(|o| Value::String(o.to_string())).collect());
         }
         let payload = serde_json::to_string(&config).unwrap();
         Message { topic, payload }
@@ -87,12 +93,12 @@ impl RpictFrame {
         let mut sensors = Vec::with_capacity(15);
         for phase in ["l1", "l2", "l3"] {
             sensors.extend([
-                Sensor { name: leak(format!("{phase}_real_power")), source: "rpict", device_class: "power", state_class: "measurement", unit: Some("W") },
-                Sensor { name: leak(format!("{phase}_apparent_power")), source: "rpict", device_class: "apparent_power", state_class: "measurement", unit: Some("VA") },
-                Sensor { name: leak(format!("{phase}_irms")), source: "rpict", device_class: "current", state_class: "measurement", unit: Some("A") },
-                Sensor { name: leak(format!("{phase}_vrms")), source: "rpict", device_class: "voltage", state_class: "measurement", unit: Some("V") },
+                Sensor { name: leak(format!("{phase}_real_power")), source: "rpict", device_class: "power", state_class: Some("measurement"), unit: Some("W"), options: None },
+                Sensor { name: leak(format!("{phase}_apparent_power")), source: "rpict", device_class: "apparent_power", state_class: Some("measurement"), unit: Some("VA"), options: None },
+                Sensor { name: leak(format!("{phase}_irms")), source: "rpict", device_class: "current", state_class: Some("measurement"), unit: Some("A"), options: None },
+                Sensor { name: leak(format!("{phase}_vrms")), source: "rpict", device_class: "voltage", state_class: Some("measurement"), unit: Some("V"), options: None },
                 // lechacal reports power factor in the 0..1 range, so it carries no unit.
-                Sensor { name: leak(format!("{phase}_power_factor")), source: "rpict", device_class: "power_factor", state_class: "measurement", unit: None },
+                Sensor { name: leak(format!("{phase}_power_factor")), source: "rpict", device_class: "power_factor", state_class: Some("measurement"), unit: None, options: None },
             ]);
         }
         sensors
@@ -113,8 +119,10 @@ impl LinkyFrame {
         // Cumulative meter indexes (Wh): total_increasing makes them usable in the
         // Home Assistant Energy dashboard. https://www.home-assistant.io/docs/energy/electricity-grid/
         vec![
-            Sensor { name: "hchc", source: "linky", device_class: "energy", state_class: "total_increasing", unit: Some("Wh") },
-            Sensor { name: "hchp", source: "linky", device_class: "energy", state_class: "total_increasing", unit: Some("Wh") },
+            Sensor { name: "hchc", source: "linky", device_class: "energy", state_class: Some("total_increasing"), unit: Some("Wh"), options: None },
+            Sensor { name: "hchp", source: "linky", device_class: "energy", state_class: Some("total_increasing"), unit: Some("Wh"), options: None },
+            // Current tariff period, exposed as an enum sensor to drive tariff-based automations.
+            Sensor { name: "ptec", source: "linky", device_class: "enum", state_class: None, unit: None, options: Some(&["HC", "HP"]) },
         ]
     }
 }
@@ -257,8 +265,9 @@ mod tests {
             name: "l1_real_power",
             source: "rpict",
             device_class: "power",
-            state_class: "measurement",
+            state_class: Some("measurement"),
             unit: Some("W"),
+            options: None,
         };
         // When
         let Message { topic, payload } = sensor.to_discovery_message("homeassistant", "energy-monitor/availability");
@@ -285,8 +294,9 @@ mod tests {
             name: "l1_power_factor",
             source: "rpict",
             device_class: "power_factor",
-            state_class: "measurement",
+            state_class: Some("measurement"),
             unit: None,
+            options: None,
         };
         // When
         let Message { payload, .. } = sensor.to_discovery_message("homeassistant", "energy-monitor/availability");
@@ -306,14 +316,36 @@ mod tests {
     }
 
     #[test]
-    fn test_linky_sensors_are_energy_total_increasing() {
+    fn test_linky_energy_sensors_are_total_increasing() {
         // When
-        let sensors = LinkyFrame::sensors();
+        let energy: Vec<_> = LinkyFrame::sensors()
+            .into_iter()
+            .filter(|s| s.device_class == "energy")
+            .collect();
         // Then
-        assert_eq!(sensors.len(), 2);
-        assert!(sensors.iter().all(|s| {
-            s.source == "linky" && s.device_class == "energy" && s.state_class == "total_increasing" && s.unit == Some("Wh")
-        }));
+        assert_eq!(energy.len(), 2);
+        assert!(energy
+            .iter()
+            .all(|s| { s.source == "linky" && s.state_class == Some("total_increasing") && s.unit == Some("Wh") }));
+    }
+
+    #[test]
+    fn test_linky_ptec_is_enum_sensor() {
+        // Given
+        let ptec = LinkyFrame::sensors().into_iter().find(|s| s.name == "ptec").unwrap();
+        // Then the descriptor is a unit-less, state-class-less enum
+        assert_eq!(ptec.device_class, "enum");
+        assert_eq!(ptec.state_class, None);
+        assert_eq!(ptec.unit, None);
+        assert_eq!(ptec.options, Some(&["HC", "HP"][..]));
+        // And its discovery payload lists options while omitting state_class/unit_of_measurement
+        let Message { payload, .. } = ptec.to_discovery_message("homeassistant", "energy-monitor/availability");
+        let value: Value = serde_json::from_str(&payload).unwrap();
+        assert_eq!(value["device_class"], "enum");
+        assert_eq!(value["value_template"], "{{ value_json.ptec }}");
+        assert!(value.get("state_class").is_none());
+        assert!(value.get("unit_of_measurement").is_none());
+        assert_eq!(value["options"], serde_json::json!(["HC", "HP"]));
     }
 
     #[test]
