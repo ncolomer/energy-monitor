@@ -13,7 +13,11 @@ use crate::settings;
 const DEVICE_ID: &str = "energy-monitor";
 const DEFAULT_DISCOVERY_PREFIX: &str = "homeassistant";
 const SUPPORT_URL: &str = "https://github.com/ncolomer/energy-monitor";
-// Bigger than the largest announce burst (17 discovery + 1 availability) so the
+// Seconds without an update after which Home Assistant marks a sensor unavailable.
+// Comfortably above the rpict/linky frame cadence (~1-2s) so it only triggers when a
+// source actually stops feeding, not on normal jitter.
+const EXPIRE_AFTER_SECS: u32 = 60;
+// Bigger than the largest announce burst (18 discovery + 1 availability) so the
 // event-loop task never blocks on its own request channel while (re)announcing.
 const CHANNEL_CAPACITY: usize = 64;
 
@@ -27,7 +31,7 @@ pub struct Message {
 /// Describes one Home Assistant sensor entity exposed through MQTT discovery.
 #[derive(Debug, PartialEq)]
 pub struct Sensor {
-    pub name: &'static str,                       // JSON field of the state payload, e.g. "l1_real_power"
+    pub name: String,                             // JSON field of the state payload, e.g. "l1_real_power"
     pub source: &'static str,                     // "rpict" | "linky"
     pub device_class: &'static str,               // https://www.home-assistant.io/integrations/sensor/#device-class
     pub state_class: Option<&'static str>,        // Some("measurement"|"total_increasing"); None for "enum" sensors
@@ -54,6 +58,7 @@ impl Sensor {
             "state_topic": self.state_topic(),
             "value_template": format!("{{{{ value_json.{} }}}}", self.name),
             "availability_topic": availability_topic,
+            "expire_after": EXPIRE_AFTER_SECS,
             "device_class": self.device_class,
             "device": {
                 "identifiers": [DEVICE_ID],
@@ -93,12 +98,12 @@ impl RpictFrame {
         let mut sensors = Vec::with_capacity(15);
         for phase in ["l1", "l2", "l3"] {
             sensors.extend([
-                Sensor { name: leak(format!("{phase}_real_power")), source: "rpict", device_class: "power", state_class: Some("measurement"), unit: Some("W"), options: None },
-                Sensor { name: leak(format!("{phase}_apparent_power")), source: "rpict", device_class: "apparent_power", state_class: Some("measurement"), unit: Some("VA"), options: None },
-                Sensor { name: leak(format!("{phase}_irms")), source: "rpict", device_class: "current", state_class: Some("measurement"), unit: Some("A"), options: None },
-                Sensor { name: leak(format!("{phase}_vrms")), source: "rpict", device_class: "voltage", state_class: Some("measurement"), unit: Some("V"), options: None },
+                Sensor { name: format!("{phase}_real_power"), source: "rpict", device_class: "power", state_class: Some("measurement"), unit: Some("W"), options: None },
+                Sensor { name: format!("{phase}_apparent_power"), source: "rpict", device_class: "apparent_power", state_class: Some("measurement"), unit: Some("VA"), options: None },
+                Sensor { name: format!("{phase}_irms"), source: "rpict", device_class: "current", state_class: Some("measurement"), unit: Some("A"), options: None },
+                Sensor { name: format!("{phase}_vrms"), source: "rpict", device_class: "voltage", state_class: Some("measurement"), unit: Some("V"), options: None },
                 // lechacal reports power factor in the 0..1 range, so it carries no unit.
-                Sensor { name: leak(format!("{phase}_power_factor")), source: "rpict", device_class: "power_factor", state_class: Some("measurement"), unit: None, options: None },
+                Sensor { name: format!("{phase}_power_factor"), source: "rpict", device_class: "power_factor", state_class: Some("measurement"), unit: None, options: None },
             ]);
         }
         sensors
@@ -119,10 +124,10 @@ impl LinkyFrame {
         // Cumulative meter indexes (Wh): total_increasing makes them usable in the
         // Home Assistant Energy dashboard. https://www.home-assistant.io/docs/energy/electricity-grid/
         vec![
-            Sensor { name: "hchc", source: "linky", device_class: "energy", state_class: Some("total_increasing"), unit: Some("Wh"), options: None },
-            Sensor { name: "hchp", source: "linky", device_class: "energy", state_class: Some("total_increasing"), unit: Some("Wh"), options: None },
+            Sensor { name: "hchc".to_string(), source: "linky", device_class: "energy", state_class: Some("total_increasing"), unit: Some("Wh"), options: None },
+            Sensor { name: "hchp".to_string(), source: "linky", device_class: "energy", state_class: Some("total_increasing"), unit: Some("Wh"), options: None },
             // Current tariff period, exposed as an enum sensor to drive tariff-based automations.
-            Sensor { name: "ptec", source: "linky", device_class: "enum", state_class: None, unit: None, options: Some(&["HC", "HP"]) },
+            Sensor { name: "ptec".to_string(), source: "linky", device_class: "enum", state_class: None, unit: None, options: Some(&["HC", "HP"]) },
         ]
     }
 }
@@ -134,13 +139,6 @@ impl ToHassMqtt for LinkyFrame {
             payload: serde_json::to_string(self).unwrap(),
         }
     }
-}
-
-/// Leaks a runtime-built sensor name into a `&'static str`. Sensor lists are built
-/// once at startup, so the (tiny, bounded) leak is acceptable and keeps `Sensor`
-/// cheap to copy and compare.
-fn leak(s: String) -> &'static str {
-    Box::leak(s.into_boxed_str())
 }
 
 #[derive(Debug)]
@@ -262,7 +260,7 @@ mod tests {
     fn test_sensor_to_discovery_message() {
         // Given
         let sensor = Sensor {
-            name: "l1_real_power",
+            name: "l1_real_power".to_string(),
             source: "rpict",
             device_class: "power",
             state_class: Some("measurement"),
@@ -282,6 +280,7 @@ mod tests {
         assert_eq!(value["device_class"], "power");
         assert_eq!(value["state_class"], "measurement");
         assert_eq!(value["unit_of_measurement"], "W");
+        assert_eq!(value["expire_after"], 60);
         assert_eq!(value["device"]["identifiers"][0], "energy-monitor");
         assert_eq!(value["device"]["sw_version"], env!("CARGO_PKG_VERSION"));
         assert_eq!(value["origin"]["support_url"], SUPPORT_URL);
@@ -291,7 +290,7 @@ mod tests {
     fn test_sensor_without_unit_omits_unit_of_measurement() {
         // Given
         let sensor = Sensor {
-            name: "l1_power_factor",
+            name: "l1_power_factor".to_string(),
             source: "rpict",
             device_class: "power_factor",
             state_class: Some("measurement"),
