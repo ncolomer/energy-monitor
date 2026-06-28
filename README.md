@@ -196,7 +196,7 @@ The enclosure contains 3 clippable parts so that it is easier and faster to prin
 Assembly only needs a bit of epoxy to hold the push button in place. Don't forget to place the 3D-printed button before glueing the push button!
 The enclosure was designed using [Autodesk Fusion 360](https://www.autodesk.com/products/fusion-360).
 
-You can find `emonitor-part*.stl` STL files in the project's [`enclosure`](https://github.com/ncolomer/energy-monitor/tree/master/enclosure) directory.
+You can find `emonitor-part*.stl` STL files in the project's [`enclosure`](https://github.com/ncolomer/energy-monitor/tree/main/enclosure) directory.
 
 I printed mine in 6 hours, using [PrusaSlicer](https://www.prusa3d.com/prusaslicer/) as slicer, and with the following parameters:
 - 0.20mm SPEED profile
