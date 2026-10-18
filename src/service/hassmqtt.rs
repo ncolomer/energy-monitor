@@ -159,6 +159,7 @@ impl HassMqttClient {
         let (client, mut eventloop) = AsyncClient::new(mqtt_options, CHANNEL_CAPACITY);
         let connected = Arc::new(AtomicBool::new(false));
 
+        let discovery = Arc::new(discovery);
         let task_client = client.clone();
         let task_connected = connected.clone();
         tokio::task::spawn(async move {
@@ -167,16 +168,27 @@ impl HassMqttClient {
                     Ok(Event::Incoming(Packet::ConnAck(_))) => {
                         log::info!("Home Assistant MQTT connected");
                         task_connected.store(true, Ordering::Relaxed);
-                        if let Err(e) = task_client.try_subscribe(status_topic.as_str(), QoS::AtLeastOnce) {
-                            log::error!("Home Assistant status subscribe error: {e:?}");
-                        }
-                        announce(&task_client, &discovery, &availability_topic);
+                        let client = task_client.clone();
+                        let status_topic = status_topic.clone();
+                        let discovery = discovery.clone();
+                        let availability_topic = availability_topic.clone();
+                        tokio::task::spawn(async move {
+                            if let Err(e) = client.subscribe(status_topic, QoS::AtLeastOnce).await {
+                                log::error!("Home Assistant status subscribe error: {e:?}");
+                            }
+                            announce(&client, &discovery, &availability_topic).await;
+                        });
                     }
                     Ok(Event::Incoming(Packet::Publish(publish)))
                         if publish.topic == status_topic && publish.payload.as_ref() == b"online" =>
                     {
                         log::info!("Home Assistant birth message received, re-announcing entities");
-                        announce(&task_client, &discovery, &availability_topic);
+                        let client = task_client.clone();
+                        let discovery = discovery.clone();
+                        let availability_topic = availability_topic.clone();
+                        tokio::task::spawn(async move {
+                            announce(&client, &discovery, &availability_topic).await;
+                        });
                     }
                     Ok(_) => {}
                     Err(e) => {
@@ -194,6 +206,9 @@ impl HassMqttClient {
     }
 
     pub fn publish(&self, payload: &impl ToHassMqtt) -> Result<(), HassMqttClientError> {
+        if !self.is_connected() {
+            return Ok(());
+        }
         let Message { topic, payload } = payload.to_state_message();
         self.client.try_publish(topic, QoS::AtLeastOnce, false, payload).map_err(|e| {
             log::error!("Home Assistant MQTT publish error: {e:?}");
@@ -206,13 +221,13 @@ impl HassMqttClient {
     }
 }
 
-fn announce(client: &AsyncClient, discovery: &[Message], availability_topic: &str) {
+async fn announce(client: &AsyncClient, discovery: &[Message], availability_topic: &str) {
     for Message { topic, payload } in discovery {
-        if let Err(e) = client.try_publish(topic.as_str(), QoS::AtLeastOnce, true, payload.as_bytes()) {
+        if let Err(e) = client.publish(topic.as_str(), QoS::AtLeastOnce, true, payload.as_bytes()).await {
             log::error!("Home Assistant discovery publish error: {e:?}");
         }
     }
-    if let Err(e) = client.try_publish(availability_topic, QoS::AtLeastOnce, true, "online") {
+    if let Err(e) = client.publish(availability_topic, QoS::AtLeastOnce, true, "online").await {
         log::error!("Home Assistant availability publish error: {e:?}");
     }
 }
